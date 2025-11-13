@@ -1,0 +1,5 @@
+{
+  "name": "User Admin Dashboard",
+  "description": "A simple web application for managing users. It allows administrators to log in, view a list of users, and perform create, read, update, and delete (CRUD) operations on user accounts.",
+  "requestFramePermissions": []
+}
