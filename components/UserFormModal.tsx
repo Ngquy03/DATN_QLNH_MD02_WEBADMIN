@@ -80,6 +80,9 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({ user, token, onClo
                     name: formData.name,
                     phoneNumber: formData.phoneNumber,
                     isActive: formData.isActive,
+                    role: formData.role as User['role'],
+                    email: formData.email,
+                    username: formData.username,
                 };
                 response = await fetch(`${API_BASE_URL}/users/${user._id}`, {
                     method: 'PUT',

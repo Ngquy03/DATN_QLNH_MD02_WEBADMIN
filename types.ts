@@ -13,7 +13,7 @@ export interface User {
 }
 
 export type NewUser = Pick<User, 'username' | 'password' | 'role' | 'name' | 'phoneNumber' | 'email'>;
-export type UpdateUser = Pick<User, 'name' | 'phoneNumber' | 'isActive'>;
+export type UpdateUser = Pick<User,'username'| 'name' | 'phoneNumber' | 'email' | 'isActive' | 'role'>;
 
 export interface Report {
   _id: string;
