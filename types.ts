@@ -31,3 +31,35 @@ export interface Report {
   };
   generatedAt: string;
 }
+
+
+export interface Ingredient {
+    _id: string;
+    name: string;
+    unit: string;
+    quantity: number;
+    minThreshold: number;
+    importPrice: number;
+    supplier?: string;
+    status: 'available' | 'low_stock' | 'out_of_stock';
+    createdAt?: string;
+    updatedAt?: string;
+}
+
+export interface RecipeItem {
+    ingredient: Ingredient | string; // Khi populate là object, khi lưu là ID string
+    quantityNeeded: number;
+    _id?: string;
+}
+
+export interface MenuItem {
+    _id: string;
+    name: string;
+    description?: string;
+    image?: string;
+    price: number;
+    category: string;
+    isAvailable: boolean;
+    recipe: RecipeItem[];
+    createdAt?: string;
+}
