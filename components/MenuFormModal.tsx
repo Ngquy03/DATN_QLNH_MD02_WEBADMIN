@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { MenuItem, Ingredient } from '../types';
-import { DeleteIcon, AddIcon } from './Icons';
+import React, { useState } from 'react';
+import { MenuItem } from '../types';
 
 interface MenuFormModalProps {
     menuItem: MenuItem | null;
@@ -13,79 +12,26 @@ const API_BASE_URL = 'http://localhost:3000';
 
 export const MenuFormModal: React.FC<MenuFormModalProps> = ({ menuItem, token, onClose, onSave }) => {
     const isEditMode = !!menuItem?._id;
-    const [ingredientsList, setIngredientsList] = useState<Ingredient[]>([]);
     
-    // State form
+    // Chỉ init state dựa trên các trường có trong object JSON bạn đưa
     const [formData, setFormData] = useState({
         name: menuItem?.name || '',
         price: menuItem?.price || 0,
         category: menuItem?.category || 'Món chính',
         image: menuItem?.image || '',
-        description: menuItem?.description || '',
-        isAvailable: menuItem?.isAvailable ?? true,
-        recipe: menuItem?.recipe.map(r => ({
-            ingredientId: typeof r.ingredient === 'object' ? r.ingredient._id : r.ingredient,
-            quantityNeeded: r.quantityNeeded
-        })) || []
+        status: menuItem?.status || 'available' // Giữ nguyên giá trị cũ hoặc mặc định, không hiển thị UI chỉnh sửa nếu không cần
     });
 
     const [isLoading, setIsLoading] = useState(false);
 
-    // Fetch danh sách nguyên liệu để chọn trong Recipe
-    useEffect(() => {
-        const fetchIngredients = async () => {
-            try {
-                const res = await fetch(`${API_BASE_URL}/ingredients`, { headers: {'Authorization': `Bearer ${token}`} });
-                const data = await res.json();
-                if (data.success) setIngredientsList(data.data);
-            } catch (e) { console.error("Failed to load ingredients"); }
-        };
-        fetchIngredients();
-    }, [token]);
-
-    const handleInfoChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-        const { name, value, type } = e.target;
-        if (type === 'checkbox') {
-            setFormData(prev => ({ ...prev, [name]: (e.target as HTMLInputElement).checked }));
-        } else {
-            setFormData(prev => ({ ...prev, [name]: name === 'price' ? Number(value) : value }));
-        }
-    };
-
-    // Xử lý Recipe (Thêm/Sửa/Xóa dòng nguyên liệu)
-    const addRecipeItem = () => {
-        if (ingredientsList.length === 0) return;
-        setFormData(prev => ({
-            ...prev,
-            recipe: [...prev.recipe, { ingredientId: ingredientsList[0]._id, quantityNeeded: 1 }]
-        }));
-    };
-
-    const removeRecipeItem = (index: number) => {
-        setFormData(prev => ({
-            ...prev,
-            recipe: prev.recipe.filter((_, i) => i !== index)
-        }));
-    };
-
-    const updateRecipeItem = (index: number, field: 'ingredientId' | 'quantityNeeded', value: any) => {
-        const newRecipe = [...formData.recipe];
-        newRecipe[index] = { ...newRecipe[index], [field]: value };
-        setFormData(prev => ({ ...prev, recipe: newRecipe }));
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: name === 'price' ? Number(value) : value }));
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
-        
-        // Format lại recipe cho đúng chuẩn backend (ingredient: ObjectId)
-        const payload = {
-            ...formData,
-            recipe: formData.recipe.map(r => ({
-                ingredient: r.ingredientId,
-                quantityNeeded: Number(r.quantityNeeded)
-            }))
-        };
 
         try {
             const url = isEditMode ? `${API_BASE_URL}/menu/${menuItem._id}` : `${API_BASE_URL}/menu`;
@@ -94,14 +40,14 @@ export const MenuFormModal: React.FC<MenuFormModalProps> = ({ menuItem, token, o
             const response = await fetch(url, {
                 method,
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify(payload),
+                body: JSON.stringify(formData),
             });
 
             if (response.ok) {
                 onSave();
                 onClose();
             } else {
-                alert('Lỗi khi lưu món ăn');
+                alert('Lỗi khi lưu');
             }
         } catch (error) {
             console.error(error);
@@ -110,79 +56,97 @@ export const MenuFormModal: React.FC<MenuFormModalProps> = ({ menuItem, token, o
         }
     };
 
+    const inputClass = "w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white transition-all outline-none";
+    const labelClass = "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1";
+
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 overflow-y-auto">
-            <div className="w-full max-w-2xl p-6 my-8 bg-white rounded-lg shadow-xl dark:bg-gray-800">
-                <h2 className="text-2xl font-bold mb-4 dark:text-white">{isEditMode ? 'Sửa Món Ăn' : 'Thêm Món Mới'}</h2>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <div className="bg-white dark:bg-gray-800 w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up">
                 
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    {/* Thông tin chung */}
-                    <div className="grid grid-cols-2 gap-4">
-                        <input name="name" value={formData.name} onChange={handleInfoChange} placeholder="Tên món" required className="col-span-1 px-3 py-2 border rounded dark:bg-gray-700 dark:text-white" />
-                        <input name="price" type="number" value={formData.price} onChange={handleInfoChange} placeholder="Giá bán" required className="col-span-1 px-3 py-2 border rounded dark:bg-gray-700 dark:text-white" />
-                    </div>
+                {/* Header */}
+                <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-800">
+                    <h2 className="text-xl font-bold text-gray-800 dark:text-white">
+                        {isEditMode ? 'Sửa món ăn' : 'Thêm món mới'}
+                    </h2>
+                    <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">✕</button>
+                </div>
+
+                {/* Form Body */}
+                <form id="menuForm" onSubmit={handleSubmit} className="p-6 space-y-5">
                     
-                    <div className="grid grid-cols-2 gap-4">
-                        <select name="category" value={formData.category} onChange={handleInfoChange} className="col-span-1 px-3 py-2 border rounded dark:bg-gray-700 dark:text-white">
-                            <option value="Món chính">Món chính</option>
-                            <option value="Khai vị">Khai vị</option>
-                            <option value="Đồ uống">Đồ uống</option>
-                            <option value="Tráng miệng">Tráng miệng</option>
-                        </select>
-                         <input name="image" value={formData.image} onChange={handleInfoChange} placeholder="URL hình ảnh" className="col-span-1 px-3 py-2 border rounded dark:bg-gray-700 dark:text-white" />
+                    {/* Tên món */}
+                    <div>
+                        <label className={labelClass}>Tên món</label>
+                        <input 
+                            name="name" 
+                            value={formData.name} 
+                            onChange={handleChange} 
+                            placeholder="VD: Cơm tấm sườn" 
+                            required 
+                            className={inputClass} 
+                        />
                     </div>
 
-                    <textarea name="description" value={formData.description} onChange={handleInfoChange} placeholder="Mô tả món ăn" className="w-full px-3 py-2 border rounded dark:bg-gray-700 dark:text-white" />
-
-                    {/* Checkbox Trạng thái */}
-                    <div className="flex items-center">
-                        <input type="checkbox" id="isAvailable" name="isAvailable" checked={formData.isAvailable} onChange={handleInfoChange} className="w-4 h-4 text-indigo-600" />
-                        <label htmlFor="isAvailable" className="ml-2 text-sm text-gray-900 dark:text-gray-300">Đang kinh doanh</label>
-                    </div>
-
-                    {/* Phần CÔNG THỨC (Recipe) */}
-                    <div className="border-t pt-4 mt-4">
-                        <div className="flex justify-between items-center mb-2">
-                            <h3 className="font-semibold dark:text-white">Công thức (Định lượng)</h3>
-                            <button type="button" onClick={addRecipeItem} className="text-sm bg-green-100 text-green-700 px-2 py-1 rounded hover:bg-green-200 flex items-center">
-                                <AddIcon className="w-4 h-4 mr-1"/> Thêm nguyên liệu
-                            </button>
+                    <div className="grid grid-cols-2 gap-5">
+                        {/* Giá */}
+                        <div>
+                            <label className={labelClass}>Giá (VNĐ)</label>
+                            <input 
+                                name="price" 
+                                type="number" 
+                                value={formData.price} 
+                                onChange={handleChange} 
+                                required 
+                                className={inputClass} 
+                            />
                         </div>
-                        
-                        <div className="space-y-2 max-h-40 overflow-y-auto">
-                            {formData.recipe.map((r, index) => (
-                                <div key={index} className="flex gap-2 items-center">
-                                    <select 
-                                        value={r.ingredientId} 
-                                        onChange={(e) => updateRecipeItem(index, 'ingredientId', e.target.value)}
-                                        className="flex-1 px-2 py-1 border rounded text-sm dark:bg-gray-700 dark:text-white"
-                                    >
-                                        {ingredientsList.map(ing => (
-                                            <option key={ing._id} value={ing._id}>{ing.name} ({ing.unit})</option>
-                                        ))}
-                                    </select>
-                                    <input 
-                                        type="number" 
-                                        value={r.quantityNeeded} 
-                                        onChange={(e) => updateRecipeItem(index, 'quantityNeeded', e.target.value)}
-                                        placeholder="Số lượng"
-                                        step="0.01"
-                                        className="w-24 px-2 py-1 border rounded text-sm dark:bg-gray-700 dark:text-white"
-                                    />
-                                    <button type="button" onClick={() => removeRecipeItem(index)} className="text-red-500 hover:text-red-700">
-                                        <DeleteIcon className="w-4 h-4"/>
-                                    </button>
-                                </div>
-                            ))}
-                            {formData.recipe.length === 0 && <p className="text-sm text-gray-500 italic">Chưa có công thức cho món này.</p>}
+
+                        {/* Danh mục */}
+                        <div>
+                            <label className={labelClass}>Danh mục</label>
+                            <select name="category" value={formData.category} onChange={handleChange} className={inputClass}>
+                                <option value="Món chính">Món chính</option>
+                                <option value="Khai vị">Khai vị</option>
+                                <option value="Đồ uống">Đồ uống</option>
+                                <option value="Tráng miệng">Tráng miệng</option>
+                            </select>
                         </div>
                     </div>
 
-                    <div className="flex justify-end pt-4 space-x-2 border-t mt-4">
-                        <button type="button" onClick={onClose} className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 dark:bg-gray-600 dark:text-white">Hủy</button>
-                        <button type="submit" disabled={isLoading} className="px-4 py-2 text-white bg-indigo-600 rounded hover:bg-indigo-700">{isLoading ? 'Lưu' : 'Lưu'}</button>
+                    {/* Hình ảnh */}
+                    <div>
+                        <label className={labelClass}>URL Hình ảnh</label>
+                        <input 
+                            name="image" 
+                            value={formData.image} 
+                            onChange={handleChange} 
+                            placeholder="http://..." 
+                            className={inputClass} 
+                        />
+                        {/* Preview ảnh nhỏ nếu có link */}
+                        {formData.image && (
+                            <div className="mt-3 h-32 w-full rounded-lg overflow-hidden border border-gray-200 bg-gray-50">
+                                <img src={formData.image} alt="Preview" className="w-full h-full object-cover" />
+                            </div>
+                        )}
                     </div>
+
                 </form>
+
+                {/* Footer */}
+                <div className="px-6 py-4 border-t border-gray-100 dark:border-gray-700 flex justify-end gap-3 bg-gray-50 dark:bg-gray-800">
+                    <button onClick={onClose} className="px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600">
+                        Hủy
+                    </button>
+                    <button 
+                        type="submit" 
+                        form="menuForm" 
+                        disabled={isLoading}
+                        className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 shadow-md transition-all"
+                    >
+                        {isLoading ? 'Đang lưu...' : 'Lưu món ăn'}
+                    </button>
+                </div>
             </div>
         </div>
     );
