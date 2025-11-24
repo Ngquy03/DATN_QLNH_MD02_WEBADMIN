@@ -1,153 +1,104 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { MenuItem } from '../types';
-
-interface MenuFormModalProps {
-    menuItem: MenuItem | null;
-    token: string;
-    onClose: () => void;
-    onSave: () => void;
-}
+import { EditIcon, DeleteIcon, AddIcon } from './Icons';
+import { MenuFormModal } from './MenuFormModal';
 
 const API_BASE_URL = 'http://localhost:3000';
 
-export const MenuFormModal: React.FC<MenuFormModalProps> = ({ menuItem, token, onClose, onSave }) => {
-    const isEditMode = !!menuItem?._id;
-    
-    // Chỉ init state dựa trên các trường có trong object JSON bạn đưa
-    const [formData, setFormData] = useState({
-        name: menuItem?.name || '',
-        price: menuItem?.price || 0,
-        category: menuItem?.category || 'Món chính',
-        image: menuItem?.image || '',
-        status: menuItem?.status || 'available' // Giữ nguyên giá trị cũ hoặc mặc định, không hiển thị UI chỉnh sửa nếu không cần
-    });
+interface Props {
+  token: string;
+}
 
-    const [isLoading, setIsLoading] = useState(false);
+const MenuManagement: React.FC<Props> = ({ token }) => {
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: name === 'price' ? Number(value) : value }));
-    };
+  const fetchMenu = useCallback(async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/menu`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      const result = await response.json();
+      // Giả sử API trả về data chuẩn theo object bạn đưa
+      if (result) setMenuItems(result.data || result); 
+    } catch (err) { console.error(err); }
+  }, [token]);
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsLoading(true);
+  useEffect(() => { fetchMenu(); }, [fetchMenu]);
 
-        try {
-            const url = isEditMode ? `${API_BASE_URL}/menu/${menuItem._id}` : `${API_BASE_URL}/menu`;
-            const method = isEditMode ? 'PUT' : 'POST';
-            
-            const response = await fetch(url, {
-                method,
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify(formData),
-            });
+  const handleDelete = async (id: string) => {
+    if (!window.confirm('Xóa món này?')) return;
+    try {
+        await fetch(`${API_BASE_URL}/menu/${id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        fetchMenu();
+    } catch (err) { alert('Lỗi khi xóa'); }
+  };
 
-            if (response.ok) {
-                onSave();
-                onClose();
-            } else {
-                alert('Lỗi khi lưu');
-            }
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setIsLoading(false);
-        }
-    };
+  const formatCurrency = (val: number) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val);
 
-    const inputClass = "w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white transition-all outline-none";
-    const labelClass = "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1";
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <div className="flex justify-between items-center mb-8">
+          <h2 className="text-3xl font-bold text-gray-800 dark:text-white">Thực Đơn</h2>
+          <button 
+            onClick={() => { setEditingItem(null); setIsModalOpen(true); }} 
+            className="flex items-center px-4 py-2 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-all shadow-md"
+          >
+              <AddIcon className="mr-2 w-5 h-5"/> Thêm món
+          </button>
+      </div>
 
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-            <div className="bg-white dark:bg-gray-800 w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up">
-                
-                {/* Header */}
-                <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-800">
-                    <h2 className="text-xl font-bold text-gray-800 dark:text-white">
-                        {isEditMode ? 'Sửa món ăn' : 'Thêm món mới'}
-                    </h2>
-                    <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">✕</button>
-                </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {menuItems.map((item) => (
+              <div key={item._id} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col hover:shadow-lg transition-shadow duration-300">
+                  {/* Ảnh món ăn */}
+                  <div className="h-48 overflow-hidden bg-gray-100 relative">
+                      {item.image ? (
+                          <img 
+                            src={item.image} 
+                            alt={item.name} 
+                            className="w-full h-full object-cover" 
+                          />
+                      ) : (
+                          <div className="flex items-center justify-center h-full text-gray-400">No Image</div>
+                      )}
+                      {/* Badge danh mục */}
+                      <span className="absolute top-2 right-2 bg-black/50 backdrop-blur-md text-white text-xs px-2 py-1 rounded">
+                          {item.category}
+                      </span>
+                  </div>
 
-                {/* Form Body */}
-                <form id="menuForm" onSubmit={handleSubmit} className="p-6 space-y-5">
-                    
-                    {/* Tên món */}
-                    <div>
-                        <label className={labelClass}>Tên món</label>
-                        <input 
-                            name="name" 
-                            value={formData.name} 
-                            onChange={handleChange} 
-                            placeholder="VD: Cơm tấm sườn" 
-                            required 
-                            className={inputClass} 
-                        />
-                    </div>
+                  {/* Thông tin */}
+                  <div className="p-4 flex-1 flex flex-col">
+                      <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1 truncate" title={item.name}>{item.name}</h3>
+                      <p className="text-xl font-bold text-indigo-600 mb-4">{formatCurrency(item.price)}</p>
+                      
+                      <div className="mt-auto flex gap-3 pt-3 border-t border-gray-100 dark:border-gray-700">
+                          <button 
+                             onClick={() => { setEditingItem(item); setIsModalOpen(true); }} 
+                             className="flex-1 py-2 text-sm font-medium text-indigo-600 bg-indigo-50 rounded-lg hover:bg-indigo-100"
+                          >
+                             Sửa
+                          </button>
+                          <button 
+                             onClick={() => handleDelete(item._id)} 
+                             className="px-3 py-2 text-red-500 bg-red-50 rounded-lg hover:bg-red-100"
+                          >
+                             <DeleteIcon className="w-5 h-5"/>
+                          </button>
+                      </div>
+                  </div>
+              </div>
+          ))}
+      </div>
+      
+      {isModalOpen && <MenuFormModal menuItem={editingItem} token={token} onClose={() => setIsModalOpen(false)} onSave={fetchMenu}/>}
+    </div>
+  );
+};
 
-                    <div className="grid grid-cols-2 gap-5">
-                        {/* Giá */}
-                        <div>
-                            <label className={labelClass}>Giá (VNĐ)</label>
-                            <input 
-                                name="price" 
-                                type="number" 
-                                value={formData.price} 
-                                onChange={handleChange} 
-                                required 
-                                className={inputClass} 
-                            />
-                        </div>
-
-                        {/* Danh mục */}
-                        <div>
-                            <label className={labelClass}>Danh mục</label>
-                            <select name="category" value={formData.category} onChange={handleChange} className={inputClass}>
-                                <option value="Món chính">Món chính</option>
-                                <option value="Khai vị">Khai vị</option>
-                                <option value="Đồ uống">Đồ uống</option>
-                                <option value="Tráng miệng">Tráng miệng</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    {/* Hình ảnh */}
-                    <div>
-                        <label className={labelClass}>URL Hình ảnh</label>
-                        <input 
-                            name="image" 
-                            value={formData.image} 
-                            onChange={handleChange} 
-                            placeholder="http://..." 
-                            className={inputClass} 
-                        />
-                        {/* Preview ảnh nhỏ nếu có link */}
-                        {formData.image && (
-                            <div className="mt-3 h-32 w-full rounded-lg overflow-hidden border border-gray-200 bg-gray-50">
-                                <img src={formData.image} alt="Preview" className="w-full h-full object-cover" />
-                            </div>
-                        )}
-                    </div>
-
-                </form>
-
-                {/* Footer */}
-                <div className="px-6 py-4 border-t border-gray-100 dark:border-gray-700 flex justify-end gap-3 bg-gray-50 dark:bg-gray-800">
-                    <button onClick={onClose} className="px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600">
-                        Hủy
-                    </button>
-                    <button 
-                        type="submit" 
-                        form="menuForm" 
-                        disabled={isLoading}
-                        className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 shadow-md transition-all"
-                    >
-                        {isLoading ? 'Đang lưu...' : 'Lưu món ăn'}
-                    </button>
-                </div>
-            </div>
-        </div>
-    );
-}; 
+export default MenuManagement;
