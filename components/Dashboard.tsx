@@ -35,10 +35,9 @@ const Dashboard: React.FC<DashboardProps> = ({ token, onLogout }) => {
     }
   };
 
-  const getTabClass = (tabName: Tab) => 
-    `px-4 py-2 text-sm font-medium whitespace-nowrap rounded-md cursor-pointer transition-colors duration-200 ${
-      activeTab === tabName 
-      ? 'bg-indigo-600 text-white shadow' 
+  const getTabClass = (tabName: Tab) =>
+    `px-4 py-2 text-sm font-medium whitespace-nowrap rounded-md cursor-pointer transition-colors duration-200 ${activeTab === tabName
+      ? 'bg-indigo-600 text-white shadow'
       : 'text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
     }`;
 
@@ -46,12 +45,12 @@ const Dashboard: React.FC<DashboardProps> = ({ token, onLogout }) => {
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
       <header className="flex items-center justify-between p-4 bg-white shadow-md dark:bg-gray-800">
         <div className="flex items-center space-x-2">
-            <UserIcon className="w-8 h-8 text-indigo-500"/>
-            <h1 className="text-xl font-bold hidden sm:block">Nhà Hàng Admin</h1>
+          <UserIcon className="w-8 h-8 text-indigo-500" />
+          <h1 className="text-xl font-bold hidden sm:block">Nhà Hàng Admin</h1>
         </div>
         <button onClick={onLogout} className="flex items-center px-4 py-2 space-x-2 font-semibold text-white bg-red-500 rounded-md hover:bg-red-600 focus:outline-none">
-            <LogoutIcon />
-            <span className="hidden sm:inline">Đăng xuất</span>
+          <LogoutIcon />
+          <span className="hidden sm:inline">Đăng xuất</span>
         </button>
       </header>
 
@@ -64,7 +63,7 @@ const Dashboard: React.FC<DashboardProps> = ({ token, onLogout }) => {
           <button onClick={() => setActiveTab('users')} className={getTabClass('users')}>Nhân viên</button>
           <button onClick={() => setActiveTab('settings')} className={getTabClass('settings')}>Cài đặt</button>
         </nav>
-        
+
         <div className="mt-4 animate-fade-in">
           {renderContent()}
         </div>
