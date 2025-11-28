@@ -18,14 +18,14 @@ export interface LoginResponse {
 export const authService = {
     // Đăng nhập
     login: async (credentials: LoginRequest): Promise<LoginResponse> => {
-        const response = await apiClient.post<ApiResponse<LoginResponse>>('/users/login', credentials);
-        return response.data.data;
+        const response = await apiClient.post<LoginResponse>('/users/login', credentials);
+        return response.data;
     },
 
     // Đăng xuất
     logout: async (): Promise<void> => {
         await apiClient.post('/users/logout');
-        localStorage.removeItem('authToken');
+        localStorage.removeItem('token');
     },
 
     // Kiểm tra token

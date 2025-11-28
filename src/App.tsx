@@ -9,6 +9,11 @@ import MenuManagement from './components/modules/MenuManagement';
 import IngredientManagement from './components/modules/IngredientManagement';
 import Settings from './components/modules/Settings';
 import Statistics from './components/modules/Statistics';
+import VoucherManagement from './components/modules/VoucherManagement';
+import TableManagement from './components/modules/TableManagement';
+import ShiftManagement from './components/modules/ShiftManagement';
+import SalaryManagement from './components/modules/SalaryManagement';
+import ActivityLogs from './components/modules/ActivityLogs';
 
 const App: React.FC = () => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -18,14 +23,24 @@ const App: React.FC = () => {
     useEffect(() => {
         // Check if user is already logged in
         const token = localStorage.getItem('token');
+        console.log('Initial token check:', token ? 'found' : 'not found');
         if (token) {
             setIsAuthenticated(true);
+            console.log('Setting isAuthenticated to true from stored token');
         }
         setIsLoading(false);
     }, []);
 
-    const handleLogin = () => {
+    useEffect(() => {
+        console.log('isAuthenticated changed to:', isAuthenticated);
+    }, [isAuthenticated]);
+
+    const handleLogin = (token: string) => {
+        console.log('handleLogin called with token:', token ? 'exists' : 'missing');
+        localStorage.setItem('token', token);
+        // Sử dụng functional update để đảm bảo state được cập nhật đúng
         setIsAuthenticated(true);
+        console.log('isAuthenticated set to true');
     };
 
     const handleLogout = () => {
@@ -50,6 +65,16 @@ const App: React.FC = () => {
                 return <IngredientManagement />;
             case 'users':
                 return <UserManagement />;
+            case 'tables':
+                return <TableManagement />;
+            case 'vouchers':
+                return <VoucherManagement />;
+            case 'shifts':
+                return <ShiftManagement />;
+            case 'salary':
+                return <SalaryManagement />;
+            case 'logs':
+                return <ActivityLogs />;
             case 'settings':
                 return <Settings />;
             default:

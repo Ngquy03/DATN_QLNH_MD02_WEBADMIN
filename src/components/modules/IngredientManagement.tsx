@@ -12,6 +12,7 @@ import {
     message,
     Popconfirm,
     Progress,
+    Select,
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import {
@@ -32,6 +33,7 @@ const IngredientManagement: React.FC = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingItem, setEditingItem] = useState<Ingredient | null>(null);
     const [searchText, setSearchText] = useState('');
+    const [categoryFilter, setCategoryFilter] = useState<string | undefined>(undefined);
     const [form] = Form.useForm();
 
     const fetchIngredients = async () => {
@@ -121,9 +123,23 @@ const IngredientManagement: React.FC = () => {
             title: 'Tên nguyên liệu',
             dataIndex: 'name',
             key: 'name',
-            filteredValue: [searchText],
-            onFilter: (value, record) =>
-                record.name.toLowerCase().includes(value.toString().toLowerCase()),
+        },
+        {
+            title: 'Danh mục',
+            dataIndex: 'category',
+            key: 'category',
+            render: (category: string) => {
+                const map: Record<string, string> = {
+                    'kho': 'Thực phẩm khô',
+                    'tuoi': 'Thực phẩm tươi sống',
+                    'gia_vi': 'Gia vị',
+                    'do_uong': 'Đồ uống',
+                    'khac': 'Khác',
+                    'bia': 'Bia',
+                    'ruou': 'Rượu'
+                };
+                return category ? <Tag color="blue">{map[category] || category}</Tag> : '-';
+            },
         },
         {
             title: 'Tag',
@@ -251,10 +267,28 @@ const IngredientManagement: React.FC = () => {
                     style={{ marginBottom: 16, maxWidth: 400 }}
                     size="large"
                 />
+                <Select
+                    placeholder="Lọc theo danh mục"
+                    style={{ width: 200, marginLeft: 16 }}
+                    allowClear
+                    onChange={(value) => setCategoryFilter(value)}
+                    options={[
+                        { value: 'kho', label: 'Thực phẩm khô' },
+                        { value: 'tuoi', label: 'Thực phẩm tươi sống' },
+                        { value: 'gia_vi', label: 'Gia vị' },
+                        { value: 'do_uong', label: 'Đồ uống' },
+                        { value: 'khac', label: 'Khác' },
+                    ]}
+                    size="large"
+                />
 
                 <Table
                     columns={columns}
-                    dataSource={ingredients}
+                    dataSource={ingredients.filter(item => {
+                        const matchesSearch = item.name.toLowerCase().includes(searchText.toLowerCase());
+                        const matchesCategory = categoryFilter ? item.category === categoryFilter : true;
+                        return matchesSearch && matchesCategory;
+                    })}
                     rowKey="id"
                     loading={loading}
                     pagination={{
@@ -295,6 +329,23 @@ const IngredientManagement: React.FC = () => {
                         label="Tag"
                     >
                         <Input placeholder="hai_san, rau_cu, thit, v.v." />
+                    </Form.Item>
+
+                    <Form.Item
+                        name="category"
+                        label="Danh mục"
+                        rules={[{ required: true, message: 'Vui lòng chọn danh mục!' }]}
+                    >
+                        <Select
+                            placeholder="Chọn danh mục"
+                            options={[
+                                { value: 'kho', label: 'Thực phẩm khô' },
+                                { value: 'tuoi', label: 'Thực phẩm tươi sống' },
+                                { value: 'gia_vi', label: 'Gia vị' },
+                                { value: 'do_uong', label: 'Đồ uống' },
+                                { value: 'khac', label: 'Khác' },
+                            ]}
+                        />
                     </Form.Item>
 
                     <Form.Item

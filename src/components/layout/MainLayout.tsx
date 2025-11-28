@@ -12,6 +12,11 @@ import {
     LogoutOutlined,
     BellOutlined,
     FileTextOutlined,
+    TableOutlined,
+    TagOutlined,
+    ClockCircleOutlined,
+    BankOutlined,
+    HistoryOutlined,
 } from '@ant-design/icons';
 
 const { Header, Sider, Content } = Layout;
@@ -36,8 +41,13 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, onLogout, onPageChang
         '2': 'statistics',
         '3': 'menu',
         '4': 'ingredients',
-        '5': 'users',
-        '6': 'settings',
+        '5': 'tables',
+        '6': 'vouchers',
+        '7': 'shifts',
+        '8': 'salary',
+        '9': 'logs',
+        '10': 'users',
+        '11': 'settings',
     };
 
     // Reverse mapping để tìm key từ page name
@@ -46,8 +56,13 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, onLogout, onPageChang
         'statistics': '2',
         'menu': '3',
         'ingredients': '4',
-        'users': '5',
-        'settings': '6',
+        'tables': '5',
+        'vouchers': '6',
+        'shifts': '7',
+        'salary': '8',
+        'logs': '9',
+        'users': '10',
+        'settings': '11',
     };
 
     // Menu items cho sidebar
@@ -74,11 +89,36 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, onLogout, onPageChang
         },
         {
             key: '5',
+            icon: <TableOutlined />,
+            label: 'Quản lý Bàn',
+        },
+        {
+            key: '6',
+            icon: <TagOutlined />,
+            label: 'Voucher',
+        },
+        {
+            key: '7',
+            icon: <ClockCircleOutlined />,
+            label: 'Ca làm việc',
+        },
+        {
+            key: '8',
+            icon: <BankOutlined />,
+            label: 'Tính lương',
+        },
+        {
+            key: '9',
+            icon: <HistoryOutlined />,
+            label: 'Lịch sử HĐ',
+        },
+        {
+            key: '10',
             icon: <UserOutlined />,
             label: 'Nhân viên',
         },
         {
-            key: '6',
+            key: '11',
             icon: <SettingOutlined />,
             label: 'Cài đặt',
         },

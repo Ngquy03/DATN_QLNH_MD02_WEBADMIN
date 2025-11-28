@@ -7,8 +7,8 @@ export interface Ingredient {
     tag?: string;
     unit: string;
     quantity: number;
+    category?: string;
     minThreshold?: number;
-    minQuantity?: number;
     importPrice?: number;
     price?: number;
     supplier?: string;
@@ -22,6 +22,7 @@ export interface Ingredient {
 
 export interface CreateIngredientRequest {
     name: string;
+    category?: string;
     tag?: string;
     unit: string;
     quantity: number;
@@ -35,6 +36,7 @@ export interface CreateIngredientRequest {
 
 export interface UpdateIngredientRequest {
     name?: string;
+    category?: string;
     tag?: string;
     unit?: string;
     quantity?: number;

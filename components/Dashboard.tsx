@@ -46,7 +46,7 @@ const Dashboard: React.FC<DashboardProps> = ({ token, onLogout }) => {
       <header className="flex items-center justify-between p-4 bg-white shadow-md dark:bg-gray-800">
         <div className="flex items-center space-x-2">
           <UserIcon className="w-8 h-8 text-indigo-500" />
-          <h1 className="text-xl font-bold hidden sm:block">Nhà Hàng Admin</h1>
+          <h1 className="text-xl font-bold hidden sm:block">Nhà Hàng ABC</h1>
         </div>
         <button onClick={onLogout} className="flex items-center px-4 py-2 space-x-2 font-semibold text-white bg-red-500 rounded-md hover:bg-red-600 focus:outline-none">
           <LogoutIcon />

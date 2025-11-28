@@ -18,7 +18,14 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
         setLoading(true);
         try {
             const response = await authService.login(values);
+            // Lưu token vào localStorage trước
+            localStorage.setItem('token', response.token);
+            // Lưu thông tin user nếu cần
+            if (response.user) {
+                localStorage.setItem('user', JSON.stringify(response.user));
+            }
             message.success('Đăng nhập thành công!');
+            // Gọi callback để update state
             onLogin(response.token);
         } catch (error) {
             // Error đã được xử lý trong axios interceptor
@@ -48,9 +55,8 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                 }}
             >
                 <div style={{ textAlign: 'center', marginBottom: 32 }}>
-                    <div style={{ fontSize: 64, marginBottom: 16 }}>🍽️</div>
                     <Title level={2} style={{ margin: 0 }}>
-                        Nhà Hàng Admin
+                        Nhà Hàng ABC
                     </Title>
                     <Text type="secondary">Đăng nhập để quản lý hệ thống</Text>
                 </div>
@@ -105,9 +111,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                 </Form>
 
                 <div style={{ marginTop: 24, textAlign: 'center' }}>
-                    <Text type="secondary" style={{ fontSize: 12 }}>
-                        © 2024 Restaurant Management System
-                    </Text>
+
                 </div>
             </Card>
         </div>
