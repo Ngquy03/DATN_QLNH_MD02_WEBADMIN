@@ -21,6 +21,7 @@ import {
     DeleteOutlined,
     SearchOutlined,
     WarningOutlined,
+    DownloadOutlined,
 } from '@ant-design/icons';
 import { Card, PageLoader } from '../common';
 import { ingredientService, Ingredient, CreateIngredientRequest, UpdateIngredientRequest } from '../../api';
@@ -97,6 +98,72 @@ const IngredientManagement: React.FC = () => {
         if (percentage <= 50) return { color: 'red', text: 'Sắp hết' };
         if (percentage <= 100) return { color: 'orange', text: 'Thấp' };
         return { color: 'green', text: 'Đủ' };
+    };
+
+    const exportLowStockToExcel = () => {
+        try {
+            // Import xlsx dynamically
+            import('xlsx').then((XLSX) => {
+                // Filter ingredients with low stock
+                const lowStockIngredients = ingredients.filter(item => {
+                    const status = getStockStatus(item.quantity, item.minThreshold);
+                    return status.color === 'red' || status.color === 'orange';
+                });
+
+                if (lowStockIngredients.length === 0) {
+                    message.warning('Không có nguyên liệu nào sắp hết!');
+                    return;
+                }
+
+                // Prepare data for Excel
+                const excelData = lowStockIngredients.map(item => ({
+                    'Tên nguyên liệu': item.name,
+                    'Danh mục': item.category ? {
+                        'kho': 'Thực phẩm khô',
+                        'tuoi': 'Thực phẩm tươi sống',
+                        'gia_vi': 'Gia vị',
+                        'do_uong': 'Đồ uống',
+                        'khac': 'Khác',
+                        'bia': 'Bia',
+                        'ruou': 'Rượu'
+                    }[item.category] || item.category : '-',
+                    'Số lượng hiện tại': `${item.quantity} ${item.unit}`,
+                    'Mức tối thiểu': `${item.minThreshold || 0} ${item.unit}`,
+                    'Tình trạng': getStockStatus(item.quantity, item.minThreshold).text,
+                    'Nhà cung cấp': item.supplier || '-',
+                    'Giá nhập': item.importPrice ? `${item.importPrice.toLocaleString()}đ` : '-',
+                }));
+
+                // Create worksheet
+                const ws = XLSX.utils.json_to_sheet(excelData);
+
+                // Set column widths
+                ws['!cols'] = [
+                    { wch: 25 }, // Tên nguyên liệu
+                    { wch: 20 }, // Danh mục
+                    { wch: 18 }, // Số lượng hiện tại
+                    { wch: 18 }, // Mức tối thiểu
+                    { wch: 15 }, // Tình trạng
+                    { wch: 20 }, // Nhà cung cấp
+                    { wch: 15 }, // Giá nhập
+                ];
+
+                // Create workbook
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, 'Nguyên liệu sắp hết');
+
+                // Generate filename with current date
+                const date = new Date();
+                const filename = `Bao_cao_nguyen_lieu_sap_het_${date.getFullYear()}${(date.getMonth() + 1).toString().padStart(2, '0')}${date.getDate().toString().padStart(2, '0')}.xlsx`;
+
+                // Save file
+                XLSX.writeFile(wb, filename);
+                message.success(`Đã xuất báo cáo: ${lowStockIngredients.length} nguyên liệu sắp hết`);
+            });
+        } catch (error) {
+            console.error('Error exporting to Excel:', error);
+            message.error('Có lỗi khi xuất báo cáo Excel');
+        }
     };
 
     const columns: ColumnsType<Ingredient> = [
@@ -249,14 +316,23 @@ const IngredientManagement: React.FC = () => {
                 <Title level={2} style={{ margin: 0 }}>
                     Quản lý kho hàng
                 </Title>
-                <Button
-                    type="primary"
-                    icon={<PlusOutlined />}
-                    onClick={() => openModal()}
-                    size="large"
-                >
-                    Thêm nguyên liệu
-                </Button>
+                <Space>
+                    <Button
+                        icon={<DownloadOutlined />}
+                        onClick={exportLowStockToExcel}
+                        size="large"
+                    >
+                        Xuất báo cáo sắp hết
+                    </Button>
+                    <Button
+                        type="primary"
+                        icon={<PlusOutlined />}
+                        onClick={() => openModal()}
+                        size="large"
+                    >
+                        Thêm nguyên liệu
+                    </Button>
+                </Space>
             </div>
 
             <Card>
