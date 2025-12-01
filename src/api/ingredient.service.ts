@@ -84,5 +84,11 @@ export const ingredientService = {
     delete: async (id: string): Promise<void> => {
         await apiClient.delete(`/ingredients/${id}`);
     },
+
+    // Lấy danh sách nguyên liệu cảnh báo (sắp hết/hết hàng)
+    getWarnings: async (): Promise<Ingredient[]> => {
+        const response = await apiClient.get<ApiResponse<any[]>>('/ingredients/warnings');
+        return response.data.data.map(mapIngredient);
+    },
 };
 

@@ -90,9 +90,12 @@ export const orderService = {
     },
 
     // Tách order/hóa đơn
-    split: async (orderId: string, data: SplitOrderRequest): Promise<Order[]> => {
-        const response = await apiClient.post<{ success: boolean; data: Order[] }>(
-            `/cashier/split-invoice/${orderId}`,
+    split: async (orderId: string, data: SplitOrderRequest): Promise<{ originalOrderId: string; newOrders: Order[] }> => {
+        const response = await apiClient.post<{
+            success: boolean;
+            data: { originalOrderId: string; newOrders: Order[] }
+        }>(
+            `/cashier/invoices/${orderId}/split`,
             data
         );
         return response.data.data;
