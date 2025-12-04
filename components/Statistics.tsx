@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Report } from '../types';
 import { DeleteIcon } from './Icons';
 
-const API_BASE_URL = 'http://localhost:3000';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
 
 interface StatisticsProps {
   token: string;
@@ -29,7 +29,7 @@ const Statistics: React.FC<StatisticsProps> = ({ token }) => {
         throw new Error(data.message || 'Tải báo cáo thất bại');
       }
       const result = await response.json();
-      
+
       if (result && Array.isArray(result.data)) {
         setReports(result.data);
       } else {
@@ -53,10 +53,10 @@ const Statistics: React.FC<StatisticsProps> = ({ token }) => {
     const now = new Date();
     const dayOfWeek = now.getDay();
     const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-    
+
     const startDate = new Date(now);
     startDate.setDate(now.getDate() + mondayOffset);
-    
+
     const endDate = new Date(startDate);
     endDate.setDate(startDate.getDate() + 6);
 
@@ -120,17 +120,17 @@ const Statistics: React.FC<StatisticsProps> = ({ token }) => {
       }
     }
   };
-  
+
   const formatCurrency = (value: number) => {
-      return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value);
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value);
   }
 
   const formatDate = (dateString: string) => {
-      return new Date(dateString).toLocaleDateString('vi-VN', {
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric'
-      });
+    return new Date(dateString).toLocaleDateString('vi-VN', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
   }
 
   return (
@@ -146,47 +146,47 @@ const Statistics: React.FC<StatisticsProps> = ({ token }) => {
           </button>
         </div>
       </div>
-      
+
       {isLoading && <p className="mt-4 text-center text-gray-500">Đang tải dữ liệu báo cáo...</p>}
       {error && <p className="mt-4 p-4 text-center text-red-500 bg-red-100 rounded-md dark:bg-red-900 dark:text-red-200">Lỗi: {error}</p>}
-      
+
       {!isLoading && !error && (
-         <div className="mt-6 overflow-x-auto">
-              <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-                  <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-                      <tr>
-                          <th scope="col" className="px-6 py-3">Loại báo cáo</th>
-                          <th scope="col" className="px-6 py-3">Ngày tạo</th>
-                           <th scope="col" className="px-6 py-3 text-right">Tổng doanh thu</th>
-                          <th scope="col" className="px-6 py-3 text-right">Tổng đơn hàng</th>
-                          <th scope="col" className="px-6 py-3 text-right">Hành động</th>
-                      </tr>
-                  </thead>
-                  <tbody>
-                      {reports.length > 0 ? (
-                        reports.map((report) => (
-                            <tr key={report._id} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
-                                <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white capitalize">
-                                  {report.reportType.replace('_', ' ')}
-                                </td>
-                                <td className="px-6 py-4">{formatDate(report.generatedAt)}</td>
-                                <td className="px-6 py-4 font-mono text-right">{formatCurrency(report.totalRevenue)}</td>
-                                <td className="px-6 py-4 font-mono text-right">{report.totalOrders}</td>
-                                <td className="px-6 py-4 text-right">
-                                    <button onClick={() => handleDeleteReport(report._id)} className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-200">
-                                        <DeleteIcon />
-                                    </button>
-                                </td>
-                            </tr>
-                        ))
-                      ) : (
-                        <tr>
-                            <td colSpan={5} className="p-4 text-center text-gray-500">Không có báo cáo nào.</td>
-                        </tr>
-                      )}
-                  </tbody>
-              </table>
-         </div>
+        <div className="mt-6 overflow-x-auto">
+          <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+            <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+              <tr>
+                <th scope="col" className="px-6 py-3">Loại báo cáo</th>
+                <th scope="col" className="px-6 py-3">Ngày tạo</th>
+                <th scope="col" className="px-6 py-3 text-right">Tổng doanh thu</th>
+                <th scope="col" className="px-6 py-3 text-right">Tổng đơn hàng</th>
+                <th scope="col" className="px-6 py-3 text-right">Hành động</th>
+              </tr>
+            </thead>
+            <tbody>
+              {reports.length > 0 ? (
+                reports.map((report) => (
+                  <tr key={report._id} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                    <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white capitalize">
+                      {report.reportType.replace('_', ' ')}
+                    </td>
+                    <td className="px-6 py-4">{formatDate(report.generatedAt)}</td>
+                    <td className="px-6 py-4 font-mono text-right">{formatCurrency(report.totalRevenue)}</td>
+                    <td className="px-6 py-4 font-mono text-right">{report.totalOrders}</td>
+                    <td className="px-6 py-4 text-right">
+                      <button onClick={() => handleDeleteReport(report._id)} className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-200">
+                        <DeleteIcon />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={5} className="p-4 text-center text-gray-500">Không có báo cáo nào.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );

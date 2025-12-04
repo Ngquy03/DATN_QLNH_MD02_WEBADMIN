@@ -19,7 +19,7 @@ export const MenuFormModal: React.FC<MenuFormModalProps> = ({ menuItem, token, o
         price: menuItem?.price || 0,
         category: menuItem?.category || 'Món chính',
         image: menuItem?.image || '',
-        status: menuItem?.status || 'available' // Giữ nguyên giá trị cũ hoặc mặc định, không hiển thị UI chỉnh sửa nếu không cần
+        status: menuItem?.status || 'available'
     });
 
     const [isLoading, setIsLoading] = useState(false);
@@ -29,17 +29,53 @@ export const MenuFormModal: React.FC<MenuFormModalProps> = ({ menuItem, token, o
         setFormData(prev => ({ ...prev, [name]: name === 'price' ? Number(value) : value }));
     };
 
+    // ============================
+    //   VALIDATE TRÙNG TÊN MÓN
+    // ============================
+    const checkDuplicateName = async () => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/menu`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            if (!response.ok) return false;
+
+            const data: MenuItem[] = await response.json();
+            const normalizedName = formData.name.trim().toLowerCase();
+
+            return data.some(item => {
+                const isSameItem = isEditMode && item._id === menuItem?._id;
+                return !isSameItem && item.name.trim().toLowerCase() === normalizedName;
+            });
+
+        } catch (error) {
+            console.error("Lỗi khi kiểm tra tên trùng:", error);
+            return false;
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
 
         try {
+            // KIỂM TRA TRÙNG TÊN TRƯỚC KHI GỌI API
+            const isDuplicate = await checkDuplicateName();
+            if (isDuplicate) {
+                alert("Tên món ăn đã tồn tại! Vui lòng chọn tên khác.");
+                setIsLoading(false);
+                return;
+            }
+
             const url = isEditMode ? `${API_BASE_URL}/menu/${menuItem._id}` : `${API_BASE_URL}/menu`;
             const method = isEditMode ? 'PUT' : 'POST';
             
             const response = await fetch(url, {
                 method,
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                headers: { 
+                    'Content-Type': 'application/json', 
+                    'Authorization': `Bearer ${token}` 
+                },
                 body: JSON.stringify(formData),
             });
 
@@ -88,7 +124,7 @@ export const MenuFormModal: React.FC<MenuFormModalProps> = ({ menuItem, token, o
                     </div>
 
                     <div className="grid grid-cols-2 gap-5">
-                        {/* Giá */}
+                        
                         <div>
                             <label className={labelClass}>Giá (VNĐ)</label>
                             <input 
@@ -123,7 +159,7 @@ export const MenuFormModal: React.FC<MenuFormModalProps> = ({ menuItem, token, o
                             placeholder="http://..." 
                             className={inputClass} 
                         />
-                        {/* Preview ảnh nhỏ nếu có link */}
+
                         {formData.image && (
                             <div className="mt-3 h-32 w-full rounded-lg overflow-hidden border border-gray-200 bg-gray-50">
                                 <img src={formData.image} alt="Preview" className="w-full h-full object-cover" />
@@ -135,9 +171,12 @@ export const MenuFormModal: React.FC<MenuFormModalProps> = ({ menuItem, token, o
 
                 {/* Footer */}
                 <div className="px-6 py-4 border-t border-gray-100 dark:border-gray-700 flex justify-end gap-3 bg-gray-50 dark:bg-gray-800">
-                    <button onClick={onClose} className="px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600">
+                    <button 
+                        onClick={onClose} 
+                        className="px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600">
                         Hủy
                     </button>
+
                     <button 
                         type="submit" 
                         form="menuForm" 

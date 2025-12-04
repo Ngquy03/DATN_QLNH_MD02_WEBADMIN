@@ -28,12 +28,12 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({ user, token, onClo
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         if (error) setError(null); // Clear error on new input
         const { name, value, type } = e.target;
-        
+
         if (type === 'checkbox') {
-             const { checked } = e.target as HTMLInputElement;
-             setFormData(prev => ({ ...prev, [name]: checked }));
+            const { checked } = e.target as HTMLInputElement;
+            setFormData(prev => ({ ...prev, [name]: checked }));
         } else {
-             setFormData(prev => ({ ...prev, [name]: value }));
+            setFormData(prev => ({ ...prev, [name]: value }));
         }
     };
 
@@ -41,17 +41,17 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({ user, token, onClo
         const { name, email, username, password, phoneNumber } = formData;
         if (!name.trim()) return 'Họ và Tên không được để trống.';
         if (!phoneNumber.trim()) return 'Số điện thoại không được để trống.';
-        
+
         if (!isEditMode) { // Validation for create mode
             if (!username.trim()) return 'Tên đăng nhập không được để trống.';
             if (!email.trim()) return 'Email không được để trống.';
-            
+
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(email)) {
                 return 'Địa chỉ email không hợp lệ.';
             }
             if (!password) {
-                 return 'Mật khẩu không được để trống.';
+                return 'Mật khẩu không được để trống.';
             }
             if (password.length < 6) {
                 return 'Mật khẩu phải có ít nhất 6 ký tự.';
@@ -63,7 +63,7 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({ user, token, onClo
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        
+
         const validationError = validateForm();
         if (validationError) {
             setError(validationError);
@@ -72,7 +72,7 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({ user, token, onClo
 
         setIsLoading(true);
         setError(null);
-        
+
         try {
             let response;
             if (isEditMode) {
@@ -101,7 +101,7 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({ user, token, onClo
                     phoneNumber: formData.phoneNumber,
                     email: formData.email,
                 };
-                 response = await fetch(`${API_BASE_URL}/users`, {
+                response = await fetch(`${API_BASE_URL}/users`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -124,7 +124,7 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({ user, token, onClo
             setIsLoading(false);
         }
     };
-    
+
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 transition-opacity duration-300">
             <div className="w-full max-w-lg p-6 bg-white rounded-lg shadow-xl dark:bg-gray-800 transform transition-all duration-300 scale-95 opacity-0 animate-fade-in-scale">
@@ -147,12 +147,12 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({ user, token, onClo
                         {!isEditMode && <input type="password" name="password" value={formData.password} onChange={handleChange} placeholder="Mật khẩu" required className="w-full px-3 py-2 border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-indigo-500 focus:border-indigo-500" />}
                     </div>
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                         <input type="tel" name="phoneNumber" value={formData.phoneNumber} onChange={handleChange} placeholder="Số điện thoại" required className="w-full px-3 py-2 border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-indigo-500 focus:border-indigo-500" />
-                         <select name="role" value={formData.role} onChange={handleChange} required  className="w-full px-3 py-2 border border-gray-300 rounded-md disabled:bg-gray-200 dark:disabled:bg-gray-600 disabled:cursor-not-allowed dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                        <input type="tel" name="phoneNumber" value={formData.phoneNumber} onChange={handleChange} placeholder="Số điện thoại" required className="w-full px-3 py-2 border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-indigo-500 focus:border-indigo-500" />
+                        <select name="role" value={formData.role} onChange={handleChange} required className="w-full px-3 py-2 border border-gray-300 rounded-md disabled:bg-gray-200 dark:disabled:bg-gray-600 disabled:cursor-not-allowed dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                             <option value="staff">Nhân viên</option>
                             <option value="admin">Quản trị viên</option>
                             <option value="customer">Khách hàng</option>
-                         </select>
+                        </select>
                     </div>
                     {isEditMode && (
                         <div className="flex items-center">
