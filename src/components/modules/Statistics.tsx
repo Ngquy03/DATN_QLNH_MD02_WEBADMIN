@@ -13,6 +13,7 @@ import {
     PlusOutlined,
     DeleteOutlined,
     CalendarOutlined,
+    DownloadOutlined,
 } from '@ant-design/icons';
 import { Card, PageLoader } from '../common';
 import { reportService, Report, CreateDailyReportRequest, CreateWeeklyReportRequest } from '../../api';
@@ -131,6 +132,77 @@ const Statistics: React.FC = () => {
         }
     };
 
+    const exportToExcel = () => {
+        try {
+            import('xlsx').then((XLSX) => {
+                if (reports.length === 0) {
+                    message.warning('Không có báo cáo nào để xuất!');
+                    return;
+                }
+
+                // Prepare data for Excel
+                const excelData = reports.map(report => ({
+                    'Loại báo cáo': getReportTypeLabel(report.reportType),
+                    'Ngày tạo': formatDate(report.generatedAt),
+                    'Tổng doanh thu (VNĐ)': report.totalRevenue,
+                    'Tổng đơn hàng': report.totalOrders,
+                    'Doanh thu trung bình/đơn (VNĐ)': report.totalOrders > 0
+                        ? Math.round(report.totalRevenue / report.totalOrders)
+                        : 0,
+                }));
+
+                // Create worksheet
+                const ws = XLSX.utils.json_to_sheet(excelData);
+
+                // Set column widths
+                ws['!cols'] = [
+                    { wch: 20 }, // Loại báo cáo
+                    { wch: 20 }, // Ngày tạo
+                    { wch: 25 }, // Tổng doanh thu
+                    { wch: 18 }, // Tổng đơn hàng
+                    { wch: 28 }, // Doanh thu TB
+                ];
+
+                // Add summary row
+                const totalRevenue = reports.reduce((sum, r) => sum + r.totalRevenue, 0);
+                const totalOrders = reports.reduce((sum, r) => sum + r.totalOrders, 0);
+
+                const summaryData = [
+                    {},
+                    {
+                        'Loại báo cáo': 'TỔNG CỘNG',
+                        'Ngày tạo': '',
+                        'Tổng doanh thu (VNĐ)': totalRevenue,
+                        'Tổng đơn hàng': totalOrders,
+                        'Doanh thu trung bình/đơn (VNĐ)': totalOrders > 0
+                            ? Math.round(totalRevenue / totalOrders)
+                            : 0,
+                    }
+                ];
+
+                XLSX.utils.sheet_add_json(ws, summaryData, {
+                    skipHeader: true,
+                    origin: -1
+                });
+
+                // Create workbook
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, 'Báo cáo thống kê');
+
+                // Generate filename with current date
+                const date = new Date();
+                const filename = `Bao_cao_thong_ke_${date.getFullYear()}${(date.getMonth() + 1).toString().padStart(2, '0')}${date.getDate().toString().padStart(2, '0')}.xlsx`;
+
+                // Save file
+                XLSX.writeFile(wb, filename);
+                message.success(`Đã xuất ${reports.length} báo cáo thành công!`);
+            });
+        } catch (error) {
+            console.error('Error exporting to Excel:', error);
+            message.error('Có lỗi khi xuất báo cáo Excel');
+        }
+    };
+
     const columns: ColumnsType<Report> = [
         {
             title: 'Loại báo cáo',
@@ -203,6 +275,13 @@ const Statistics: React.FC = () => {
                     Thống kê Báo cáo
                 </Title>
                 <Space>
+                    <Button
+                        icon={<DownloadOutlined />}
+                        onClick={exportToExcel}
+                        size="large"
+                    >
+                        Xuất Excel
+                    </Button>
                     <Button
                         type="primary"
                         icon={<CalendarOutlined />}

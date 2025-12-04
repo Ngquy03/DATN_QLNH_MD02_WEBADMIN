@@ -9,5 +9,6 @@ export * from './shift.service';
 export * from './table.service';
 export * from './salary.service';
 export * from './activity.service';
+export * from './order.service';
 export * from './types';
 export { default as apiClient } from './axios';

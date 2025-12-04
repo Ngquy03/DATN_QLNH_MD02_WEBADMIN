@@ -14,6 +14,7 @@ import TableManagement from './components/modules/TableManagement';
 import ShiftManagement from './components/modules/ShiftManagement';
 import SalaryManagement from './components/modules/SalaryManagement';
 import ActivityLogs from './components/modules/ActivityLogs';
+import IngredientWarnings from './components/modules/IngredientWarnings';
 
 const App: React.FC = () => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -75,6 +76,8 @@ const App: React.FC = () => {
                 return <SalaryManagement />;
             case 'logs':
                 return <ActivityLogs />;
+            case 'warnings':
+                return <IngredientWarnings />;
             case 'settings':
                 return <Settings />;
             default:

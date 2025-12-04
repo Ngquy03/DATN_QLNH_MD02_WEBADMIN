@@ -17,7 +17,9 @@ import {
     ClockCircleOutlined,
     BankOutlined,
     HistoryOutlined,
+    WarningOutlined,
 } from '@ant-design/icons';
+import { IngredientWarningNotification } from '../common';
 
 const { Header, Sider, Content } = Layout;
 
@@ -41,13 +43,14 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, onLogout, onPageChang
         '2': 'statistics',
         '3': 'menu',
         '4': 'ingredients',
-        '5': 'tables',
-        '6': 'vouchers',
-        '7': 'shifts',
-        '8': 'salary',
-        '9': 'logs',
-        '10': 'users',
-        '11': 'settings',
+        '5': 'warnings',
+        '6': 'tables',
+        '7': 'vouchers',
+        '8': 'shifts',
+        '9': 'salary',
+        '10': 'logs',
+        '11': 'users',
+        '12': 'settings',
     };
 
     // Reverse mapping để tìm key từ page name
@@ -56,13 +59,14 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, onLogout, onPageChang
         'statistics': '2',
         'menu': '3',
         'ingredients': '4',
-        'tables': '5',
-        'vouchers': '6',
-        'shifts': '7',
-        'salary': '8',
-        'logs': '9',
-        'users': '10',
-        'settings': '11',
+        'warnings': '5',
+        'tables': '6',
+        'vouchers': '7',
+        'shifts': '8',
+        'salary': '9',
+        'logs': '10',
+        'users': '11',
+        'settings': '12',
     };
 
     // Menu items cho sidebar
@@ -89,31 +93,36 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, onLogout, onPageChang
         },
         {
             key: '5',
+            icon: <WarningOutlined />,
+            label: 'Cảnh báo',
+        },
+        {
+            key: '6',
             icon: <TableOutlined />,
             label: 'Quản lý Bàn',
         },
         {
-            key: '6',
+            key: '7',
             icon: <TagOutlined />,
             label: 'Voucher',
         },
         {
-            key: '7',
+            key: '8',
             icon: <ClockCircleOutlined />,
             label: 'Ca làm việc',
         },
         {
-            key: '8',
+            key: '9',
             icon: <BankOutlined />,
             label: 'Tính lương',
         },
         {
-            key: '9',
+            key: '10',
             icon: <HistoryOutlined />,
             label: 'Lịch sử HĐ',
         },
         {
-            key: '10',
+            key: '11',
             icon: <UserOutlined />,
             label: 'Nhân viên',
         },
@@ -217,11 +226,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, onLogout, onPageChang
                     />
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                        <Button
-                            type="text"
-                            icon={<BellOutlined />}
-                            size="large"
-                            style={{ fontSize: 18 }}
+                        <IngredientWarningNotification
+                            onViewAll={() => onPageChange?.('warnings')}
                         />
                         <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
                             <Avatar
