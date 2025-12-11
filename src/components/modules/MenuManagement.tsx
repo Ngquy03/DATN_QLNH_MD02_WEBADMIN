@@ -19,6 +19,7 @@ import {
     EditOutlined,
     DeleteOutlined,
     SearchOutlined,
+    ReloadOutlined
 } from '@ant-design/icons';
 import { Card, PageLoader } from '../common';
 import { menuService, MenuItem, CreateMenuItemRequest, UpdateMenuItemRequest } from '../../api';
@@ -181,6 +182,14 @@ const MenuManagement: React.FC = () => {
                     Quản lý thực đơn
                 </Title>
                 <Button
+                    icon={<ReloadOutlined />}
+                    onClick={fetchMenuItems} // hoặc reload function
+                    loading={loading}
+                    size="large"
+                >
+                    Tải lại
+                </Button>
+                <Button
                     type="primary"
                     icon={<PlusOutlined />}
                     onClick={() => openModal()}
@@ -188,6 +197,7 @@ const MenuManagement: React.FC = () => {
                 >
                     Thêm món ăn
                 </Button>
+
             </div>
 
             <Card>

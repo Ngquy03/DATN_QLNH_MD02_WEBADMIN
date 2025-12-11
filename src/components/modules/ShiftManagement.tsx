@@ -26,6 +26,7 @@ import {
     UserOutlined,
     CheckOutlined,
     CloseOutlined,
+    ReloadOutlined,
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { shiftService, userService, Shift, CreateShiftRequest, ShiftEmployee } from '../../api';
@@ -354,9 +355,18 @@ const ShiftManagement: React.FC = () => {
             <Card>
                 <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between' }}>
                     <h2 style={{ fontSize: 18, fontWeight: 600, margin: 0 }}>Danh sách Ca làm việc</h2>
-                    <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate}>
-                        Tạo ca mới
-                    </Button>
+                    <div style={{ display: 'flex', gap: 8 }}    >
+                        <Button
+                            icon={<ReloadOutlined />}
+                            onClick={fetchShifts} // hoặc reload function
+                            loading={loading}
+                        >
+                            Tải lại
+                        </Button>
+                        <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate}>
+                            Tạo ca mới
+                        </Button>
+                    </div>
                 </div>
 
                 <Table

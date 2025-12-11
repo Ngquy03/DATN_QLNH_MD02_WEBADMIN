@@ -24,6 +24,7 @@ import {
     TagOutlined,
     PercentageOutlined,
     DollarOutlined,
+    ReloadOutlined,
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { voucherService, Voucher, CreateVoucherRequest, UpdateVoucherRequest } from '../../api';
@@ -251,6 +252,13 @@ const VoucherManagement: React.FC = () => {
             <Card>
                 <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between' }}>
                     <h2 style={{ fontSize: 18, fontWeight: 600, margin: 0 }}>Danh sách Voucher</h2>
+                    <Button
+                        icon={<ReloadOutlined />}
+                        onClick={fetchVouchers}
+                        loading={loading}
+                    >
+                        Tải lại
+                    </Button>
                     <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate}>
                         Tạo Voucher mới
                     </Button>

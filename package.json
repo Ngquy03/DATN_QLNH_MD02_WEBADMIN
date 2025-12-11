@@ -14,12 +14,15 @@
     "antd": "^6.0.0",
     "axios": "^1.13.2",
     "cors": "^2.8.5",
+    "dayjs": "^1.11.19",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
+    "recharts": "^3.5.1",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
+    "@types/recharts": "^1.8.29",
     "@vitejs/plugin-react": "^5.0.0",
     "typescript": "~5.8.2",
     "vite": "^6.2.0"

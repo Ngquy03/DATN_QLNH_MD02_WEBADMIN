@@ -22,6 +22,7 @@ import {
     SearchOutlined,
     WarningOutlined,
     DownloadOutlined,
+    ReloadOutlined
 } from '@ant-design/icons';
 import { Card, PageLoader } from '../common';
 import { ingredientService, Ingredient, CreateIngredientRequest, UpdateIngredientRequest } from '../../api';
@@ -323,6 +324,14 @@ const IngredientManagement: React.FC = () => {
                         size="large"
                     >
                         Xuất báo cáo sắp hết
+                    </Button>
+                    <Button
+                        icon={<ReloadOutlined />}
+                        onClick={fetchIngredients} // hoặc reload function
+                        loading={loading}
+                        size="large"
+                    >
+                        Tải lại
                     </Button>
                     <Button
                         type="primary"

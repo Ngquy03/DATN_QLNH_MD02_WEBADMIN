@@ -18,6 +18,7 @@ import {
     EditOutlined,
     DeleteOutlined,
     SearchOutlined,
+    ReloadOutlined,
 } from '@ant-design/icons';
 import { Card, PageLoader } from '../common';
 import { userService, User, CreateUserRequest, UpdateUserRequest } from '../../api';
@@ -191,14 +192,24 @@ const UserManagement: React.FC = () => {
                 <Title level={2} style={{ margin: 0 }}>
                     Quản lý nhân viên
                 </Title>
-                <Button
-                    type="primary"
-                    icon={<PlusOutlined />}
-                    onClick={() => openModal()}
-                    size="large"
-                >
-                    Thêm nhân viên
-                </Button>
+                <Space>
+                    <Button
+                        icon={<ReloadOutlined />}
+                        onClick={fetchUsers}
+                        loading={loading}
+                        size="large"
+                    >
+                        Tải lại
+                    </Button>
+                    <Button
+                        type="primary"
+                        icon={<PlusOutlined />}
+                        onClick={() => openModal()}
+                        size="large"
+                    >
+                        Thêm nhân viên
+                    </Button>
+                </Space>
             </div>
 
             <Card>

@@ -25,6 +25,7 @@ import {
     CheckCircleOutlined,
     CloseCircleOutlined,
     ClockCircleOutlined,
+    ReloadOutlined
 } from '@ant-design/icons';
 import { tableService, Table, CreateTableRequest, UpdateTableRequest } from '../../api';
 import Card from '../common/Card';
@@ -265,9 +266,18 @@ const TableManagement: React.FC = () => {
             <Card>
                 <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between' }}>
                     <h2 style={{ fontSize: 18, fontWeight: 600, margin: 0 }}>Danh sách Bàn</h2>
-                    <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate}>
-                        Thêm bàn mới
-                    </Button>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                        <Button
+                            icon={<ReloadOutlined />}
+                            onClick={fetchTables} // hoặc reload function
+                            loading={loading}
+                        >
+                            Tải lại
+                        </Button>
+                        <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate}>
+                            Thêm bàn mới
+                        </Button>
+                    </div>
                 </div>
 
                 <Tabs

@@ -53,6 +53,40 @@ export interface DateRangeReportResponse {
     dailyBreakdown: DailyBreakdown[];
 }
 
+export interface DetailedReportSummary {
+    totalRevenue: number;
+    totalOrders: number;
+    totalDiscountGiven: number;
+    averageOrderValue: number;
+    period: number;
+    averageRevenuePerDay: number;
+    averageOrdersPerDay: number;
+}
+
+export interface DishStatistic {
+    name: string;
+    quantity: number;
+    revenue: number;
+}
+
+export interface PaymentMethodStatistic {
+    method: string;
+    count: number;
+    revenue: number;
+}
+
+export interface DetailedReportCharts {
+    dailyRevenue: DailyBreakdown[];
+    hourlyRevenue: PeakHourData[];
+    topDishes: DishStatistic[];
+    paymentMethods: PaymentMethodStatistic[];
+}
+
+export interface DetailedReportResponse {
+    summary: DetailedReportSummary;
+    charts: DetailedReportCharts;
+}
+
 export const reportService = {
     // Lấy danh sách reports
     getAll: async (): Promise<Report[]> => {
@@ -105,8 +139,18 @@ export const reportService = {
         return response.data.data;
     },
 
+    // Lấy báo cáo chi tiết với biểu đồ
+    getDetailedReport: async (startDate: string, endDate: string): Promise<DetailedReportResponse> => {
+        const response = await apiClient.get<{ success: boolean; data: DetailedReportResponse }>(
+            '/reports/detailed',
+            { params: { startDate, endDate } }
+        );
+        return response.data.data;
+    },
+
     // Xóa report
     delete: async (id: string): Promise<void> => {
         await apiClient.delete(`/reports/${id}`);
     },
 };
+
