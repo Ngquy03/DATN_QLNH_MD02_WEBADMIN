@@ -18,6 +18,7 @@ import {
     BankOutlined,
     HistoryOutlined,
     WarningOutlined,
+    BookOutlined,
 } from '@ant-design/icons';
 import { IngredientWarningNotification } from '../common';
 
@@ -50,7 +51,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, onLogout, onPageChang
         '9': 'salary',
         '10': 'logs',
         '11': 'users',
-        '12': 'settings',
+        '12': 'recipes',
+        '13': 'settings',
     };
 
     // Reverse mapping để tìm key từ page name
@@ -66,7 +68,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, onLogout, onPageChang
         'salary': '9',
         'logs': '10',
         'users': '11',
-        'settings': '12',
+        'recipes': '12',
+        'settings': '13',
     };
 
     // Menu items cho sidebar
@@ -127,7 +130,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, onLogout, onPageChang
             label: 'Nhân viên',
         },
         {
-            key: '11',
+            key: '12',
+            icon: <BookOutlined />,
+            label: 'Công thức',
+        },
+        {
+            key: '13',
             icon: <SettingOutlined />,
             label: 'Cài đặt',
         },
