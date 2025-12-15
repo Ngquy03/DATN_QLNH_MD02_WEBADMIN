@@ -376,6 +376,7 @@ const IngredientManagement: React.FC = () => {
                     })}
                     rowKey="id"
                     loading={loading}
+                    scroll={{ x: 'max-content' }}
                     pagination={{
                         pageSize: 10,
                         showSizeChanger: true,

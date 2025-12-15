@@ -301,6 +301,7 @@ const TableManagement: React.FC = () => {
                                     dataSource={tables}
                                     rowKey="_id"
                                     loading={loading}
+                                    scroll={{ x: 'max-content' }}
                                     pagination={{ pageSize: 10 }}
                                 />
                             ),
@@ -350,6 +351,7 @@ const TableManagement: React.FC = () => {
                                             dataSource={getTablesByFloor(floor)}
                                             rowKey="_id"
                                             loading={loading}
+                                            scroll={{ x: 'max-content' }}
                                             pagination={{ pageSize: 10 }}
                                         />
                                     </>

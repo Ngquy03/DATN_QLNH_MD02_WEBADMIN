@@ -95,16 +95,14 @@ const UserManagement: React.FC = () => {
         switch (role) {
             case 'admin':
                 return 'ADMIN';
-            case 'manager':
-                return 'Quản lý';
-            case 'staff':
-                return 'Nhân viên';
             case 'kitchen':
                 return 'Bếp';
-            case 'order':
+            case 'cashier':
+                return 'Thu ngân';
+            case 'waiter':
                 return 'Phục vụ';
             default:
-                return 'Unknown';
+                return 'Phục vụ'; // Default to waiter for unknown roles
         }
     }
     // Table columns
@@ -138,7 +136,13 @@ const UserManagement: React.FC = () => {
             dataIndex: 'role',
             key: 'role',
             render: (role: string) => {
-                const color = role === 'admin' ? 'red' : role === 'manager' ? 'blue' : 'green';
+                const colorMap: Record<string, string> = {
+                    'admin': 'red',
+                    'kitchen': 'orange',
+                    'cashier': 'blue',
+                    'waiter': 'green'
+                };
+                const color = colorMap[role] || 'green';
                 return <Tag color={color}>{
                     getRoleLabel(role)
                 }</Tag>;
@@ -226,6 +230,7 @@ const UserManagement: React.FC = () => {
                     dataSource={users}
                     rowKey="id"
                     loading={loading}
+                    scroll={{ x: 'max-content' }}
                     pagination={{
                         pageSize: 10,
                         showSizeChanger: true,
@@ -305,12 +310,9 @@ const UserManagement: React.FC = () => {
                         <Select
                             options={[
                                 { value: 'admin', label: 'ADMIN' },
-                                { value: 'manager', label: 'Quản lý' },
-                                { value: 'staff', label: 'Nhân viên' },
                                 { value: 'kitchen', label: 'Bếp' },
-                                { value: 'order', label: 'Phục Vụ' },
-
-
+                                { value: 'cashier', label: 'Thu ngân' },
+                                { value: 'waiter', label: 'Phục vụ' },
                             ]}
                         />
                     </Form.Item>

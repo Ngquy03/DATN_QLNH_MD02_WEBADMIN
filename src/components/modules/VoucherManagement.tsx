@@ -264,7 +264,7 @@ const VoucherManagement: React.FC = () => {
                     </Button>
                 </div>
 
-                <Table columns={columns} dataSource={vouchers} rowKey="_id" loading={loading} pagination={{ pageSize: 10 }} />
+                <Table columns={columns} dataSource={vouchers} rowKey="_id" loading={loading} scroll={{ x: 'max-content' }} pagination={{ pageSize: 10 }} />
             </Card>
 
             <Modal

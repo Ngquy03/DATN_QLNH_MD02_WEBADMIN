@@ -307,7 +307,7 @@ const ShiftManagement: React.FC = () => {
             },
         ];
 
-        return <Table columns={employeeColumns} dataSource={record.employees} pagination={false} rowKey={(emp) => (typeof emp.employeeId === 'string' ? emp.employeeId : emp.employeeId._id)} />;
+        return <Table columns={employeeColumns} dataSource={record.employees} pagination={false} scroll={{ x: 'max-content' }} rowKey={(emp) => (typeof emp.employeeId === 'string' ? emp.employeeId : emp.employeeId._id)} />;
     };
 
     const totalEmployees = shifts.reduce((sum, shift) => sum + shift.employees.length, 0);
@@ -374,6 +374,7 @@ const ShiftManagement: React.FC = () => {
                     dataSource={shifts}
                     rowKey="_id"
                     loading={loading}
+                    scroll={{ x: 'max-content' }}
                     expandable={{ expandedRowRender }}
                     pagination={{ pageSize: 10 }}
                 />

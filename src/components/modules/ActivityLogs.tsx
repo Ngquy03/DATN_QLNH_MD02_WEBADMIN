@@ -220,6 +220,7 @@ const ActivityLogs: React.FC = () => {
                     dataSource={logs}
                     rowKey="_id"
                     loading={loading}
+                    scroll={{ x: 'max-content' }}
                     pagination={{ pageSize: 10 }}
                 />
             </Card>

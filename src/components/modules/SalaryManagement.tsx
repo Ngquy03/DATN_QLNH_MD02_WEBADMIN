@@ -288,6 +288,7 @@ const SalaryManagement: React.FC = () => {
                                     columns={employeeColumns}
                                     dataSource={employees}
                                     rowKey={(record) => record.id || record._id}
+                                    scroll={{ x: 'max-content' }}
                                     pagination={{ pageSize: 10 }}
                                 />
                             </CustomCard>
@@ -345,6 +346,7 @@ const SalaryManagement: React.FC = () => {
                                         dataSource={monthlyReport}
                                         rowKey="userId"
                                         loading={loading}
+                                        scroll={{ x: 'max-content' }}
                                         pagination={{ pageSize: 10 }}
                                     />
                                 </CustomCard>

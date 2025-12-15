@@ -396,7 +396,7 @@ const RecipeManagement: React.FC = () => {
                     dataSource={recipes}
                     rowKey="id"
                     loading={loading}
-                    scroll={{ x: 1400 }}
+                    scroll={{ x: 'max-content' }}
                     pagination={{
                         pageSize: 10,
                         showSizeChanger: true,
