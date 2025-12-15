@@ -2,35 +2,70 @@ import apiClient from './axios';
 
 export interface SalaryConfig {
     _id?: string;
-    employeeId: string;
+    userId: string;
+    baseSalary?: number;
     hourlyRate?: number;
     dailyRate?: number;
-    monthlyRate?: number;
-    effectiveFrom: string;
+    allowance?: number;
+    deductions?: number;
     createdAt?: string;
     updatedAt?: string;
 }
 
 export interface SalaryCalculation {
-    employeeId: string;
+    userId: string;
     employeeName: string;
-    period: {
-        startDate: string;
-        endDate: string;
-    };
+    username: string;
+    role: string;
+    month: number;
+    year: number;
     totalHours: number;
     totalDays: number;
+    hourlyRate: number;
+    dailyRate: number;
+    baseSalary: number;
     hourlyPay: number;
     dailyPay: number;
     monthlyPay: number;
+    allowance: number;
+    deductions: number;
     totalSalary: number;
-    shifts: any[];
+    shiftsCount: number;
+    status?: string;
+    isPaid?: boolean;
+    salaryLogId?: string;
 }
 
 export interface CalculateSalaryRequest {
     employeeId: string;
     startDate: string;
     endDate: string;
+}
+
+export interface FinalizeSalaryRequest {
+    employeeId: string;
+    month: number;
+    year: number;
+    bonus?: number;
+    deductions?: number;
+    note?: string;
+}
+
+export interface SalaryLog {
+    _id: string;
+    userId: string;
+    month: number;
+    year: number;
+    totalHours: number;
+    totalDays: number;
+    baseSalary: number;
+    totalSalary: number;
+    bonus: number;
+    deductions: number;
+    note: string;
+    status: 'pending' | 'paid';
+    createdAt: string;
+    updatedAt: string;
 }
 
 export const salaryService = {
@@ -54,25 +89,29 @@ export const salaryService = {
 
     // Lấy báo cáo lương theo tháng
     getMonthlyReport: async (month: number, year: number): Promise<SalaryCalculation[]> => {
-        const response = await apiClient.get<{ success: boolean; data: any[] }>('/salary/monthly-report', {
+        const response = await apiClient.get<{ success: boolean; data: SalaryCalculation[] }>('/salary/monthly-report', {
             params: { month, year },
         });
+        return response.data.data;
+    },
 
-        // Map backend response to SalaryCalculation interface
-        return response.data.data.map((item: any) => ({
-            employeeId: item.userId,
-            employeeName: item.fullName || item.userName,
-            period: {
-                startDate: `${year}-${month}-01`,
-                endDate: `${year}-${month}-28`, // Approximate
-            },
-            totalHours: item.totalHours || 0,
-            totalDays: 0, // Backend not returning this yet
-            hourlyPay: 0, // Backend returns hourlyWage but maybe not here
-            dailyPay: 0,
-            monthlyPay: 0,
-            totalSalary: item.totalSalary || 0,
-            shifts: [],
-        }));
+    // Chốt lương
+    finalizeSalary: async (data: FinalizeSalaryRequest): Promise<SalaryLog> => {
+        const response = await apiClient.post<{ success: boolean; data: SalaryLog }>('/salary/finalize', data);
+        return response.data.data;
+    },
+
+    // Đánh dấu đã thanh toán
+    markAsPaid: async (salaryLogId: string): Promise<SalaryLog> => {
+        const response = await apiClient.put<{ success: boolean; data: SalaryLog }>(`/salary/mark-paid/${salaryLogId}`);
+        return response.data.data;
+    },
+
+    // Lấy lịch sử lương của nhân viên
+    getSalaryHistory: async (userId: string, limit: number = 12): Promise<SalaryLog[]> => {
+        const response = await apiClient.get<{ success: boolean; data: SalaryLog[] }>(`/salary/history/${userId}`, {
+            params: { limit },
+        });
+        return response.data.data;
     },
 };

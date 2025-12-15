@@ -15,6 +15,9 @@ import {
     DatePicker,
     Tabs,
     Card,
+    Input,
+    Popconfirm,
+    Tooltip,
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import {
@@ -24,6 +27,11 @@ import {
     HistoryOutlined,
     EditOutlined,
     BankOutlined,
+    CheckCircleOutlined,
+    CloseCircleOutlined,
+    DownloadOutlined,
+    ReloadOutlined,
+    SaveOutlined,
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { salaryService, userService, SalaryConfig, SalaryCalculation } from '../../api';
@@ -32,6 +40,7 @@ import CustomCard from '../common/Card';
 const { Option } = Select;
 const { TabPane } = Tabs;
 const { RangePicker } = DatePicker;
+const { TextArea } = Input;
 
 const SalaryManagement: React.FC = () => {
     const [employees, setEmployees] = useState<any[]>([]);
@@ -39,12 +48,14 @@ const SalaryManagement: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [configModalVisible, setConfigModalVisible] = useState(false);
     const [calculateModalVisible, setCalculateModalVisible] = useState(false);
+    const [finalizeModalVisible, setFinalizeModalVisible] = useState(false);
     const [selectedEmployee, setSelectedEmployee] = useState<any>(null);
     const [calculationResult, setCalculationResult] = useState<SalaryCalculation | null>(null);
     const [monthlyReport, setMonthlyReport] = useState<SalaryCalculation[]>([]);
     const [selectedMonth, setSelectedMonth] = useState(dayjs());
     const [form] = Form.useForm();
     const [calculateForm] = Form.useForm();
+    const [finalizeForm] = Form.useForm();
 
     useEffect(() => {
         fetchEmployees();
@@ -96,6 +107,7 @@ const SalaryManagement: React.FC = () => {
             setMonthlyReport(report);
         } catch (error) {
             console.error('Error fetching monthly report:', error);
+            message.error('Không thể tải báo cáo lương');
         } finally {
             setLoading(false);
         }
@@ -107,14 +119,11 @@ const SalaryManagement: React.FC = () => {
         form.resetFields();
         if (config) {
             form.setFieldsValue({
+                baseSalary: config.baseSalary,
                 hourlyRate: config.hourlyRate,
                 dailyRate: config.dailyRate,
-                monthlyRate: config.monthlyRate,
-                effectiveFrom: dayjs(config.effectiveFrom),
-            });
-        } else {
-            form.setFieldsValue({
-                effectiveFrom: dayjs(),
+                allowance: config.allowance,
+                deductions: config.deductions,
             });
         }
         setConfigModalVisible(true);
@@ -122,14 +131,11 @@ const SalaryManagement: React.FC = () => {
 
     const handleConfigSubmit = async (values: any) => {
         try {
-            const data = {
-                ...values,
-                effectiveFrom: values.effectiveFrom.format('YYYY-MM-DD'),
-            };
-            await salaryService.updateConfig(selectedEmployee.id || selectedEmployee._id, data);
+            await salaryService.updateConfig(selectedEmployee.id || selectedEmployee._id, values);
             message.success('Cập nhật cấu hình lương thành công!');
             setConfigModalVisible(false);
             fetchSalaryConfigs();
+            fetchMonthlyReport();
         } catch (error) {
             console.error('Error updating salary config:', error);
             message.error('Có lỗi xảy ra khi cập nhật cấu hình lương');
@@ -158,6 +164,97 @@ const SalaryManagement: React.FC = () => {
         }
     };
 
+    const handleFinalize = (record: SalaryCalculation) => {
+        if (record.isPaid) {
+            message.warning('Lương tháng này đã được chốt');
+            return;
+        }
+        setSelectedEmployee(record);
+        finalizeForm.setFieldsValue({
+            employeeId: record.userId,
+            month: record.month,
+            year: record.year,
+            bonus: 0,
+            deductions: 0,
+        });
+        setFinalizeModalVisible(true);
+    };
+
+    const handleFinalizeSubmit = async (values: any) => {
+        try {
+            await salaryService.finalizeSalary(values);
+            message.success('Chốt lương thành công!');
+            setFinalizeModalVisible(false);
+            fetchMonthlyReport();
+        } catch (error: any) {
+            console.error('Error finalizing salary:', error);
+            message.error(error.response?.data?.message || 'Có lỗi xảy ra khi chốt lương');
+        }
+    };
+
+    const handleMarkAsPaid = async (salaryLogId: string) => {
+        try {
+            await salaryService.markAsPaid(salaryLogId);
+            message.success('Đã đánh dấu thanh toán!');
+            fetchMonthlyReport();
+        } catch (error) {
+            console.error('Error marking as paid:', error);
+            message.error('Có lỗi xảy ra');
+        }
+    };
+
+    const exportToExcel = () => {
+        try {
+            import('xlsx').then((XLSX) => {
+                if (monthlyReport.length === 0) {
+                    message.warning('Không có dữ liệu để xuất!');
+                    return;
+                }
+
+                const excelData = monthlyReport.map((item, index) => ({
+                    'STT': index + 1,
+                    'Tên nhân viên': item.employeeName,
+                    'Vai trò': item.role,
+                    'Tổng giờ': item.totalHours,
+                    'Tổng ngày': item.totalDays,
+                    'Lương cơ bản': item.baseSalary,
+                    'Lương theo giờ': item.hourlyPay,
+                    'Lương theo ngày': item.dailyPay,
+                    'Phụ cấp': item.allowance,
+                    'Khấu trừ': item.deductions,
+                    'Tổng lương': item.totalSalary,
+                    'Trạng thái': item.isPaid ? 'Đã thanh toán' : 'Chưa thanh toán',
+                }));
+
+                const ws = XLSX.utils.json_to_sheet(excelData);
+                ws['!cols'] = [
+                    { wch: 5 },
+                    { wch: 25 },
+                    { wch: 15 },
+                    { wch: 12 },
+                    { wch: 12 },
+                    { wch: 15 },
+                    { wch: 15 },
+                    { wch: 15 },
+                    { wch: 12 },
+                    { wch: 12 },
+                    { wch: 15 },
+                    { wch: 18 },
+                ];
+
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, 'Bảng lương');
+
+                const filename = `Bang_luong_${selectedMonth.format('MM_YYYY')}.xlsx`;
+                XLSX.writeFile(wb, filename);
+                message.success('Đã xuất báo cáo Excel thành công!');
+            });
+        } catch (error) {
+            console.error('Error exporting to Excel:', error);
+            message.error('Có lỗi khi xuất báo cáo Excel');
+        }
+    };
+
     const employeeColumns: ColumnsType<any> = [
         {
             title: 'Nhân viên',
@@ -179,11 +276,19 @@ const SalaryManagement: React.FC = () => {
             render: (role: string) => <Tag color="blue">{role}</Tag>,
         },
         {
+            title: 'Lương cơ bản',
+            key: 'baseSalary',
+            render: (_, record) => {
+                const config = salaryConfigs[record.id || record._id];
+                return config?.baseSalary ? `${config.baseSalary.toLocaleString()}đ` : '-';
+            },
+        },
+        {
             title: 'Lương theo giờ',
             key: 'hourlyRate',
             render: (_, record) => {
                 const config = salaryConfigs[record.id || record._id];
-                return config?.hourlyRate ? `${config.hourlyRate.toLocaleString()}đ` : '-';
+                return config?.hourlyRate ? `${config.hourlyRate.toLocaleString()}đ/h` : '-';
             },
         },
         {
@@ -191,15 +296,7 @@ const SalaryManagement: React.FC = () => {
             key: 'dailyRate',
             render: (_, record) => {
                 const config = salaryConfigs[record.id || record._id];
-                return config?.dailyRate ? `${config.dailyRate.toLocaleString()}đ` : '-';
-            },
-        },
-        {
-            title: 'Lương cứng',
-            key: 'monthlyRate',
-            render: (_, record) => {
-                const config = salaryConfigs[record.id || record._id];
-                return config?.monthlyRate ? `${config.monthlyRate.toLocaleString()}đ` : '-';
+                return config?.dailyRate ? `${config.dailyRate.toLocaleString()}đ/ngày` : '-';
             },
         },
         {
@@ -218,30 +315,47 @@ const SalaryManagement: React.FC = () => {
             title: 'Nhân viên',
             dataIndex: 'employeeName',
             key: 'employeeName',
-            render: (text) => <span style={{ fontWeight: 500 }}>{text}</span>,
+            render: (text, record) => (
+                <div>
+                    <div style={{ fontWeight: 500 }}>{text}</div>
+                    <div style={{ fontSize: 12, color: '#888' }}>{record.username}</div>
+                </div>
+            ),
         },
         {
-            title: 'Tổng giờ làm',
+            title: 'Vai trò',
+            dataIndex: 'role',
+            key: 'role',
+            render: (role) => <Tag color="blue">{role}</Tag>,
+        },
+        {
+            title: 'Giờ làm',
             dataIndex: 'totalHours',
             key: 'totalHours',
-            render: (hours) => `${hours.toFixed(2)}h`,
+            render: (hours) => `${hours.toFixed(1)}h`,
         },
         {
-            title: 'Lương theo giờ',
+            title: 'Ngày làm',
+            dataIndex: 'totalDays',
+            key: 'totalDays',
+            render: (days) => `${days} ngày`,
+        },
+        {
+            title: 'Lương cơ bản',
+            dataIndex: 'baseSalary',
+            key: 'baseSalary',
+            render: (value) => `${value.toLocaleString()}đ`,
+        },
+        {
+            title: 'Lương giờ',
             dataIndex: 'hourlyPay',
             key: 'hourlyPay',
             render: (value) => `${value.toLocaleString()}đ`,
         },
         {
-            title: 'Lương theo ngày',
+            title: 'Lương ngày',
             dataIndex: 'dailyPay',
             key: 'dailyPay',
-            render: (value) => `${value.toLocaleString()}đ`,
-        },
-        {
-            title: 'Lương cứng',
-            dataIndex: 'monthlyPay',
-            key: 'monthlyPay',
             render: (value) => `${value.toLocaleString()}đ`,
         },
         {
@@ -254,9 +368,54 @@ const SalaryManagement: React.FC = () => {
                 </span>
             ),
         },
+        {
+            title: 'Trạng thái',
+            key: 'status',
+            render: (_, record) => (
+                record.isPaid ? (
+                    <Tag color="success" icon={<CheckCircleOutlined />}>Đã thanh toán</Tag>
+                ) : (
+                    <Tag color="default" icon={<CloseCircleOutlined />}>Chưa thanh toán</Tag>
+                )
+            ),
+        },
+        {
+            title: 'Thao tác',
+            key: 'actions',
+            render: (_, record) => (
+                <Space>
+                    {!record.isPaid && (
+                        <Tooltip title="Chốt lương">
+                            <Button
+                                type="link"
+                                icon={<SaveOutlined />}
+                                onClick={() => handleFinalize(record)}
+                                size="small"
+                            >
+                                Chốt
+                            </Button>
+                        </Tooltip>
+                    )}
+                    {record.isPaid && record.salaryLogId && record.status === 'pending' && (
+                        <Popconfirm
+                            title="Xác nhận đã thanh toán?"
+                            onConfirm={() => handleMarkAsPaid(record.salaryLogId!)}
+                            okText="Xác nhận"
+                            cancelText="Hủy"
+                        >
+                            <Button type="link" icon={<CheckCircleOutlined />} size="small">
+                                Đã trả
+                            </Button>
+                        </Popconfirm>
+                    )}
+                </Space>
+            ),
+        },
     ];
 
     const totalSalaryPayout = monthlyReport.reduce((sum, item) => sum + item.totalSalary, 0);
+    const paidCount = monthlyReport.filter(item => item.isPaid).length;
+    const unpaidCount = monthlyReport.length - paidCount;
 
     return (
         <div>
@@ -280,9 +439,14 @@ const SalaryManagement: React.FC = () => {
                             <CustomCard>
                                 <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between' }}>
                                     <h2 style={{ fontSize: 18, fontWeight: 600, margin: 0 }}>Danh sách Nhân viên</h2>
-                                    <Button type="primary" icon={<CalculatorOutlined />} onClick={handleCalculate}>
-                                        Tính lương nhanh
-                                    </Button>
+                                    <Space>
+                                        <Button icon={<ReloadOutlined />} onClick={fetchEmployees}>
+                                            Tải lại
+                                        </Button>
+                                        <Button type="primary" icon={<CalculatorOutlined />} onClick={handleCalculate}>
+                                            Tính lương nhanh
+                                        </Button>
+                                    </Space>
                                 </div>
                                 <Table
                                     columns={employeeColumns}
@@ -305,10 +469,10 @@ const SalaryManagement: React.FC = () => {
                         children: (
                             <>
                                 <Row gutter={16} style={{ marginBottom: 24 }}>
-                                    <Col span={8}>
+                                    <Col span={6}>
                                         <CustomCard>
                                             <Statistic
-                                                title="Tổng chi lương tháng này"
+                                                title="Tổng chi lương"
                                                 value={totalSalaryPayout}
                                                 precision={0}
                                                 valueStyle={{ color: '#cf1322' }}
@@ -317,18 +481,30 @@ const SalaryManagement: React.FC = () => {
                                             />
                                         </CustomCard>
                                     </Col>
-                                    <Col span={8}>
+                                    <Col span={6}>
                                         <CustomCard>
                                             <Statistic
-                                                title="Số nhân viên được tính"
-                                                value={monthlyReport.length}
-                                                prefix={<UserOutlined />}
+                                                title="Đã thanh toán"
+                                                value={paidCount}
+                                                valueStyle={{ color: '#3f8600' }}
+                                                prefix={<CheckCircleOutlined />}
+                                                suffix={`/ ${monthlyReport.length}`}
                                             />
                                         </CustomCard>
                                     </Col>
-                                    <Col span={8}>
+                                    <Col span={6}>
                                         <CustomCard>
-                                            <div style={{ marginBottom: 8 }}>Chọn tháng báo cáo</div>
+                                            <Statistic
+                                                title="Chưa thanh toán"
+                                                value={unpaidCount}
+                                                valueStyle={{ color: '#faad14' }}
+                                                prefix={<CloseCircleOutlined />}
+                                            />
+                                        </CustomCard>
+                                    </Col>
+                                    <Col span={6}>
+                                        <CustomCard>
+                                            <div style={{ marginBottom: 8 }}>Chọn tháng</div>
                                             <DatePicker
                                                 picker="month"
                                                 value={selectedMonth}
@@ -341,6 +517,24 @@ const SalaryManagement: React.FC = () => {
                                 </Row>
 
                                 <CustomCard>
+                                    <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between' }}>
+                                        <h2 style={{ fontSize: 18, fontWeight: 600, margin: 0 }}>
+                                            Bảng lương tháng {selectedMonth.format('MM/YYYY')}
+                                        </h2>
+                                        <Space>
+                                            <Button icon={<ReloadOutlined />} onClick={fetchMonthlyReport} loading={loading}>
+                                                Tải lại
+                                            </Button>
+                                            <Button
+                                                type="primary"
+                                                icon={<DownloadOutlined />}
+                                                onClick={exportToExcel}
+                                                disabled={monthlyReport.length === 0}
+                                            >
+                                                Xuất Excel
+                                            </Button>
+                                        </Space>
+                                    </div>
                                     <Table
                                         columns={reportColumns}
                                         dataSource={monthlyReport}
@@ -364,8 +558,21 @@ const SalaryManagement: React.FC = () => {
                 onOk={() => form.submit()}
                 okText="Lưu cấu hình"
                 cancelText="Hủy"
+                width={600}
             >
                 <Form form={form} layout="vertical" onFinish={handleConfigSubmit}>
+                    <Form.Item
+                        name="baseSalary"
+                        label="Lương cơ bản (tháng)"
+                        rules={[{ type: 'number', min: 0, message: 'Lương không được âm' }]}
+                    >
+                        <InputNumber
+                            style={{ width: '100%' }}
+                            formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                            addonAfter="đ/tháng"
+                            placeholder="0"
+                        />
+                    </Form.Item>
                     <Form.Item
                         name="hourlyRate"
                         label="Lương theo giờ"
@@ -380,7 +587,7 @@ const SalaryManagement: React.FC = () => {
                     </Form.Item>
                     <Form.Item
                         name="dailyRate"
-                        label="Lương theo ngày (theo ca)"
+                        label="Lương theo ngày"
                         rules={[{ type: 'number', min: 0, message: 'Lương không được âm' }]}
                     >
                         <InputNumber
@@ -391,23 +598,28 @@ const SalaryManagement: React.FC = () => {
                         />
                     </Form.Item>
                     <Form.Item
-                        name="monthlyRate"
-                        label="Lương cứng (tháng)"
-                        rules={[{ type: 'number', min: 0, message: 'Lương không được âm' }]}
+                        name="allowance"
+                        label="Phụ cấp"
+                        rules={[{ type: 'number', min: 0, message: 'Phụ cấp không được âm' }]}
                     >
                         <InputNumber
                             style={{ width: '100%' }}
                             formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                            addonAfter="đ/tháng"
+                            addonAfter="đ"
                             placeholder="0"
                         />
                     </Form.Item>
                     <Form.Item
-                        name="effectiveFrom"
-                        label="Áp dụng từ ngày"
-                        rules={[{ required: true, message: 'Vui lòng chọn ngày áp dụng' }]}
+                        name="deductions"
+                        label="Khấu trừ"
+                        rules={[{ type: 'number', min: 0, message: 'Khấu trừ không được âm' }]}
                     >
-                        <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" />
+                        <InputNumber
+                            style={{ width: '100%' }}
+                            formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                            addonAfter="đ"
+                            placeholder="0"
+                        />
                     </Form.Item>
                 </Form>
             </Modal>
@@ -466,11 +678,12 @@ const SalaryManagement: React.FC = () => {
                                 <p><strong>Nhân viên:</strong> {calculationResult.employeeName}</p>
                                 <p><strong>Tổng giờ làm:</strong> {calculationResult.totalHours?.toFixed(2) || 0} giờ</p>
                                 <p><strong>Tổng ngày làm:</strong> {calculationResult.totalDays || 0} ngày</p>
+                                <p><strong>Số ca làm:</strong> {calculationResult.shiftsCount || 0} ca</p>
                             </Col>
                             <Col span={12}>
+                                <p><strong>Lương cơ bản:</strong> {calculationResult.baseSalary?.toLocaleString() || 0}đ</p>
                                 <p><strong>Lương theo giờ:</strong> {calculationResult.hourlyPay?.toLocaleString() || 0}đ</p>
                                 <p><strong>Lương theo ngày:</strong> {calculationResult.dailyPay?.toLocaleString() || 0}đ</p>
-                                <p><strong>Lương cứng:</strong> {calculationResult.monthlyPay?.toLocaleString() || 0}đ</p>
                                 <h3 style={{ color: '#cf1322', marginTop: 8 }}>
                                     Tổng thực nhận: {calculationResult.totalSalary?.toLocaleString() || 0}đ
                                 </h3>
@@ -478,6 +691,47 @@ const SalaryManagement: React.FC = () => {
                         </Row>
                     </Card>
                 )}
+            </Modal>
+
+            {/* Modal Chốt Lương */}
+            <Modal
+                title="Chốt lương"
+                open={finalizeModalVisible}
+                onCancel={() => setFinalizeModalVisible(false)}
+                onOk={() => finalizeForm.submit()}
+                okText="Chốt lương"
+                cancelText="Hủy"
+            >
+                <Form form={finalizeForm} layout="vertical" onFinish={handleFinalizeSubmit}>
+                    <Form.Item name="employeeId" hidden>
+                        <Input />
+                    </Form.Item>
+                    <Form.Item name="month" hidden>
+                        <Input />
+                    </Form.Item>
+                    <Form.Item name="year" hidden>
+                        <Input />
+                    </Form.Item>
+                    <Form.Item name="bonus" label="Thưởng thêm">
+                        <InputNumber
+                            style={{ width: '100%' }}
+                            formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                            addonAfter="đ"
+                            placeholder="0"
+                        />
+                    </Form.Item>
+                    <Form.Item name="deductions" label="Khấu trừ thêm">
+                        <InputNumber
+                            style={{ width: '100%' }}
+                            formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                            addonAfter="đ"
+                            placeholder="0"
+                        />
+                    </Form.Item>
+                    <Form.Item name="note" label="Ghi chú">
+                        <TextArea rows={3} placeholder="Ghi chú về lương tháng này..." />
+                    </Form.Item>
+                </Form>
             </Modal>
         </div>
     );
