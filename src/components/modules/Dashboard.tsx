@@ -255,6 +255,62 @@ const Dashboard: React.FC = () => {
                 ))}
             </Row>
 
+            {/* Quick Navigation */}
+            <Row gutter={[16, 16]} style={{ marginTop: 24 }}>
+                <Col span={24}>
+                    <Title level={4}>Truy cập nhanh</Title>
+                </Col>
+                <Col xs={24} sm={12} lg={8}>
+                    <Card
+                        hoverable
+                        style={{ cursor: 'pointer', borderLeft: '4px solid #1890ff' }}
+                    >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                            <ShoppingOutlined style={{ fontSize: 32, color: '#1890ff' }} />
+                            <div>
+                                <Title level={5} style={{ margin: 0 }}>Bếp</Title>
+                                <Text type="secondary">
+                                    Số món đang nấu: {reportData?.summary.totalOrders || 0}
+                                </Text>
+                            </div>
+                        </div>
+                    </Card>
+                </Col>
+                <Col xs={24} sm={12} lg={8}>
+                    <Card
+                        hoverable
+                        style={{ cursor: 'pointer', borderLeft: '4px solid #52c41a' }}
+                    >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                            <UserOutlined style={{ fontSize: 32, color: '#52c41a' }} />
+                            <div>
+                                <Title level={5} style={{ margin: 0 }}>Phục vụ</Title>
+                                <Text type="secondary">
+                                    Bàn đang phục vụ: {stats.totalUsers || 0}
+                                </Text>
+                            </div>
+                        </div>
+                    </Card>
+                </Col>
+                <Col xs={24} sm={12} lg={8}>
+                    <Card
+                        hoverable
+                        style={{ cursor: 'pointer', borderLeft: '4px solid #fa8c16' }}
+                    >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                            <DollarOutlined style={{ fontSize: 32, color: '#fa8c16' }} />
+                            <div>
+                                <Title level={5} style={{ margin: 0 }}>Thu ngân</Title>
+                                <Text type="secondary">
+                                    Hóa đơn đã thanh toán: {reportData?.summary.totalOrders || 0}
+                                </Text>
+                            </div>
+                        </div>
+                    </Card>
+                </Col>
+            </Row>
+
+
             {/* Charts Section */}
             <Row gutter={[16, 16]} style={{ marginTop: 24 }}>
                 {/* Daily Revenue Chart */}

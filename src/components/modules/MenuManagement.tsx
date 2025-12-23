@@ -51,6 +51,14 @@ const MenuManagement: React.FC = () => {
 
     useEffect(() => {
         fetchMenuItems();
+
+        // Auto-refresh mỗi 30 giây để cập nhật trạng thái món
+        const interval = setInterval(() => {
+            fetchMenuItems();
+            console.log('🔄 Auto-refresh menu status');
+        }, 30000); // 30 seconds
+
+        return () => clearInterval(interval);
     }, []);
 
     const handleSubmit = async (values: CreateMenuItemRequest | UpdateMenuItemRequest) => {
@@ -285,7 +293,7 @@ const MenuManagement: React.FC = () => {
                         <Input placeholder="https://example.com/image.jpg" />
                     </Form.Item>
 
-                    {editingItem && (
+                    {/* {editingItem && (
                         <Form.Item name="status" label="Trạng thái">
                             <Select
                                 options={[
@@ -294,7 +302,7 @@ const MenuManagement: React.FC = () => {
                                 ]}
                             />
                         </Form.Item>
-                    )}
+                    )} */}
 
                     <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
                         <Space>

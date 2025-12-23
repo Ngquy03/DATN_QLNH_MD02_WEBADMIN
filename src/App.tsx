@@ -16,6 +16,8 @@ import SalaryManagement from './components/modules/SalaryManagement';
 import ActivityLogs from './components/modules/ActivityLogs';
 import IngredientWarnings from './components/modules/IngredientWarnings';
 import RecipeManagement from './components/modules/RecipeManagement';
+import RestaurantManagement from './components/modules/RestaurantManagement';
+import ServiceManagement from './components/modules/ServiceManagement';
 
 const App: React.FC = () => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -81,6 +83,10 @@ const App: React.FC = () => {
                 return <IngredientWarnings />;
             case 'recipes':
                 return <RecipeManagement />;
+            case 'restaurant':
+                return <RestaurantManagement />;
+            case 'service':
+                return <ServiceManagement />;
             case 'settings':
                 return <Settings />;
             default:

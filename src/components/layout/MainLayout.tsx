@@ -19,6 +19,8 @@ import {
     HistoryOutlined,
     WarningOutlined,
     BookOutlined,
+    ShopOutlined,
+    CustomerServiceOutlined,
 } from '@ant-design/icons';
 import { IngredientWarningNotification } from '../common';
 
@@ -52,7 +54,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, onLogout, onPageChang
         '10': 'logs',
         '11': 'users',
         '12': 'recipes',
-        '13': 'settings',
+        '13': 'restaurant',
+        '14': 'service',
+        '15': 'settings',
     };
 
     // Reverse mapping để tìm key từ page name
@@ -69,7 +73,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, onLogout, onPageChang
         'logs': '10',
         'users': '11',
         'recipes': '12',
-        'settings': '13',
+        'restaurant': '13',
+        'service': '14',
+        'settings': '15',
     };
 
     // Menu items cho sidebar
@@ -89,6 +95,21 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, onLogout, onPageChang
             icon: <ShoppingOutlined />,
             label: 'Thực đơn',
         },
+        // {
+        //     key: '13',
+        //     icon: <ShopOutlined />,
+        //     label: 'Nhà hàng',
+        // },
+        {
+            key: '14',
+            icon: <CustomerServiceOutlined />,
+            label: 'Phục vụ',
+        },
+        // {
+        //     key: '15',
+        //     icon: <SettingOutlined />,
+        //     label: 'Cài đặt',
+        // },
         {
             key: '4',
             icon: <InboxOutlined />,
@@ -119,11 +140,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, onLogout, onPageChang
             icon: <BankOutlined />,
             label: 'Tính lương',
         },
-        {
-            key: '10',
-            icon: <HistoryOutlined />,
-            label: 'Lịch sử HĐ',
-        },
+        // {
+        //     key: '10',
+        //     icon: <HistoryOutlined />,
+        //     label: 'Lịch sử HĐ',
+        // },
         {
             key: '11',
             icon: <UserOutlined />,
@@ -136,9 +157,14 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, onLogout, onPageChang
         },
         {
             key: '13',
-            icon: <SettingOutlined />,
-            label: 'Cài đặt',
+            icon: <ShopOutlined />,
+            label: 'Cài đặt Nhà hàng',
         },
+        // {
+        //     key: '14',
+        //     icon: <SettingOutlined />,
+        //     label: 'Cài đặt',
+        // },
     ];
 
     const handleMenuClick = (key: string) => {
